@@ -1,3 +1,6 @@
 [submodule "/Users/andrewredden/Development/Aphra/v0/lib/ds-test"]
 	path = /Users/andrewredden/Development/Aphra/v0/lib/ds-test
 	url = https://github.com/dapphub/ds-test
+[submodule "/Users/andrewredden/Development/Aphra/v0/lib/solmate"]
+	path = /Users/andrewredden/Development/Aphra/v0/lib/solmate
+	url = https://github.com/rari-capital/solmate
