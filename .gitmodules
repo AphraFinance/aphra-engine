@@ -4,3 +4,6 @@
 [submodule "/Users/andrewredden/Development/Aphra/v0/lib/solmate"]
 	path = /Users/andrewredden/Development/Aphra/v0/lib/solmate
 	url = https://github.com/rari-capital/solmate
+[submodule "/Users/andrewredden/Development/Aphra/v0/lib/weiroll"]
+	path = /Users/andrewredden/Development/Aphra/v0/lib/weiroll
+	url = https://github.com/aphrafinance/weiroll
