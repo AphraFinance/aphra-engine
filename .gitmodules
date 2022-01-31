@@ -1,9 +1,9 @@
-[submodule "/Users/andrewredden/Development/Aphra/v0/lib/ds-test"]
-	path = /Users/andrewredden/Development/Aphra/v0/lib/ds-test
+[submodule "lib/ds-test"]
+	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "/Users/andrewredden/Development/Aphra/v0/lib/solmate"]
-	path = /Users/andrewredden/Development/Aphra/v0/lib/solmate
+[submodule "lib/solmate"]
+	path = lib/solmate
 	url = https://github.com/rari-capital/solmate
-[submodule "/Users/andrewredden/Development/Aphra/v0/lib/weiroll"]
-	path = /Users/andrewredden/Development/Aphra/v0/lib/weiroll
+[submodule "weiroll"]
+	path = lib/weiroll
 	url = https://github.com/aphrafinance/weiroll
