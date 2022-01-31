@@ -5,8 +5,4 @@ import "ds-test/test.sol";
 
 contract ContractTest is DSTest {
     function setUp() public {}
-
-    function testExample() public {
-        assertTrue(true);
-    }
 }

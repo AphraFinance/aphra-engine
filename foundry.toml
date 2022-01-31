@@ -1,6 +1,8 @@
 [default]
 src = 'src'
 out = 'out'
+solc = '0.8.10'
+
 libs = ['lib']
 remappings = ['ds-test/=lib/ds-test/src/']
 
