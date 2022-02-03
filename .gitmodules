@@ -7,3 +7,6 @@
 [submodule "/Users/andrewredden/Development/Aphra/v0/lib/weiroll"]
 	path = /Users/andrewredden/Development/Aphra/v0/lib/weiroll
 	url = https://github.com/aphrafinance/weiroll
+[submodule "lib/vaults"]
+	path = lib/vaults
+	url = https://github.com/Rari-Capital/vaults
