@@ -18,9 +18,7 @@ interface IRegistry {
     function isValidCommand(address contractAddress, bytes4 selector) external view returns (bool valid);
     function getPrimePeg() external returns (address);
     function getPegData(address stable) external returns (PegTarget memory);
-    function getPegData(address stable, uint32 index) external returns (PegTarget memory);
 }
-
 
 interface Peg {
     function poolType() external returns (uint8);
@@ -107,6 +105,7 @@ contract Registry {
         require(address(msg.sender) == governance);
         _;
     }
+
     function _registerNewContract(address externalContract, bytes4 selector) internal onlyGovernance {
         bytes32 codeHash;
         assembly {codeHash := extcodehash(externalContract)}

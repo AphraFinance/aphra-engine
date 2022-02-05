@@ -10,31 +10,32 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 import {Strategy, ERC20Strategy, ETHStrategy} from "./interfaces/Strategy.sol";
 
-/// @title Rari Vault (rvToken)
+/// @title Aphra Vault (avToken)
 /// @author Transmissions11 and JetJadeja
 /// @notice Flexible, minimalist, and gas-optimized yield
 /// aggregator for earning interest on any ERC20 token.
+/// @notice changes from original are to rename Rari -> Aphra tokens and any usage of rvToken => avToken
 contract Vault is ERC20, Auth {
     using SafeCastLib for uint256;
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                                  CONSTANTS
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice The maximum number of elements allowed on the withdrawal stack.
     /// @dev Needed to prevent denial of service attacks by queue operators.
     uint256 internal constant MAX_WITHDRAWAL_STACK_SIZE = 32;
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                                 IMMUTABLES
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice The underlying token the Vault accepts.
     ERC20 public immutable UNDERLYING;
 
-    /// @notice The base unit of the underlying token and hence rvToken.
+    /// @notice The base unit of the underlying token and hence avToken.
     /// @dev Equal to 10 ** decimals. Used for fixed point arithmetic.
     uint256 internal immutable BASE_UNIT;
 
@@ -43,9 +44,9 @@ contract Vault is ERC20, Auth {
     constructor(ERC20 _UNDERLYING)
         ERC20(
             // ex: Rari Dai Stablecoin Vault
-            string(abi.encodePacked("Rari ", _UNDERLYING.name(), " Vault")),
+            string(abi.encodePacked("Aphra ", _UNDERLYING.name(), " Vault")),
             // ex: rvDAI
-            string(abi.encodePacked("rv", _UNDERLYING.symbol())),
+            string(abi.encodePacked("av", _UNDERLYING.symbol())),
             // ex: 18
             _UNDERLYING.decimals()
         )
@@ -55,14 +56,14 @@ contract Vault is ERC20, Auth {
 
         BASE_UNIT = 10**decimals;
 
-        // Prevent minting of rvTokens until
+        // Prevent minting of avTokens until
         // the initialize function is called.
         totalSupply = type(uint256).max;
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                            FEE CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice The percentage of profit recognized each harvest to reserve as fees.
     /// @dev A fixed point number where 1e18 represents 100% and 0 represents 0%.
@@ -85,9 +86,9 @@ contract Vault is ERC20, Auth {
         emit FeePercentUpdated(msg.sender, newFeePercent);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                         HARVEST CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted when the harvest window is updated.
     /// @param user The authorized user who triggered the update.
@@ -156,9 +157,9 @@ contract Vault is ERC20, Auth {
         }
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                        TARGET FLOAT CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice The desired percentage of the Vault's holdings to keep as float.
     /// @dev A fixed point number where 1e18 represents 100% and 0 represents 0%.
@@ -181,9 +182,9 @@ contract Vault is ERC20, Auth {
         emit TargetFloatPercentUpdated(msg.sender, newTargetFloatPercent);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                    UNDERLYING IS WETH CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Whether the Vault should treat the underlying token as WETH compatible.
     /// @dev If enabled the Vault will allow trusting strategies that accept Ether.
@@ -207,9 +208,9 @@ contract Vault is ERC20, Auth {
         emit UnderlyingIsWETHUpdated(msg.sender, newUnderlyingIsWETH);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                           STRATEGY STORAGE
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice The total amount of underlying tokens held in strategies at the time of the last harvest.
     /// @dev Includes maxLockedProfit, must be correctly subtracted to compute available/free holdings.
@@ -228,9 +229,9 @@ contract Vault is ERC20, Auth {
     /// @notice Maps strategies to data the Vault holds on them.
     mapping(Strategy => StrategyData) public getStrategyData;
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                              HARVEST STORAGE
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice A timestamp representing when the first harvest in the most recent harvest window occurred.
     /// @dev May be equal to lastHarvest if there was/has only been one harvest in the most last/current window.
@@ -242,9 +243,9 @@ contract Vault is ERC20, Auth {
     /// @notice The amount of locked profit at the end of the last harvest.
     uint128 public maxLockedProfit;
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                         WITHDRAWAL STACK STORAGE
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice An ordered array of strategies representing the withdrawal stack.
     /// @dev The stack is processed in descending order, meaning the last index will be withdrawn from first.
@@ -260,9 +261,9 @@ contract Vault is ERC20, Auth {
         return withdrawalStack;
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                         DEPOSIT/WITHDRAWAL LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted after a successful deposit.
     /// @param user The address that deposited into the Vault.
@@ -277,7 +278,7 @@ contract Vault is ERC20, Auth {
     /// @notice Deposit a specific amount of underlying tokens.
     /// @param underlyingAmount The amount of the underlying token to deposit.
     function deposit(uint256 underlyingAmount) external {
-        // Determine the equivalent amount of rvTokens and mint them.
+        // Determine the equivalent amount of avTokens and mint them.
         _mint(msg.sender, underlyingAmount.fdiv(exchangeRate(), BASE_UNIT));
 
         emit Deposit(msg.sender, underlyingAmount);
@@ -290,8 +291,8 @@ contract Vault is ERC20, Auth {
     /// @notice Withdraw a specific amount of underlying tokens.
     /// @param underlyingAmount The amount of underlying tokens to withdraw.
     function withdraw(uint256 underlyingAmount) external {
-        // Determine the equivalent amount of rvTokens and burn them.
-        // This will revert if the user does not have enough rvTokens.
+        // Determine the equivalent amount of avTokens and burn them.
+        // This will revert if the user does not have enough avTokens.
         _burn(msg.sender, underlyingAmount.fdiv(exchangeRate(), BASE_UNIT));
 
         emit Withdraw(msg.sender, underlyingAmount);
@@ -300,15 +301,15 @@ contract Vault is ERC20, Auth {
         transferUnderlyingTo(msg.sender, underlyingAmount);
     }
 
-    /// @notice Redeem a specific amount of rvTokens for underlying tokens.
-    /// @param rvTokenAmount The amount of rvTokens to redeem for underlying tokens.
-    function redeem(uint256 rvTokenAmount) external {
+    /// @notice Redeem a specific amount of avTokens for underlying tokens.
+    /// @param avTokenAmount The amount of avTokens to redeem for underlying tokens.
+    function redeem(uint256 avTokenAmount) external {
         // Determine the equivalent amount of underlying tokens.
-        uint256 underlyingAmount = rvTokenAmount.fmul(exchangeRate(), BASE_UNIT);
+        uint256 underlyingAmount = avTokenAmount.fmul(exchangeRate(), BASE_UNIT);
 
-        // Burn the provided amount of rvTokens.
-        // This will revert if the user does not have enough rvTokens.
-        _burn(msg.sender, rvTokenAmount);
+        // Burn the provided amount of avTokens.
+        // This will revert if the user does not have enough avTokens.
+        _burn(msg.sender, avTokenAmount);
 
         emit Withdraw(msg.sender, underlyingAmount);
 
@@ -340,9 +341,9 @@ contract Vault is ERC20, Auth {
         UNDERLYING.safeTransfer(recipient, underlyingAmount);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                         VAULT ACCOUNTING LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Returns a user's Vault balance in underlying tokens.
     /// @param user The user to get the underlying balance of.
@@ -351,17 +352,17 @@ contract Vault is ERC20, Auth {
         return balanceOf[user].fmul(exchangeRate(), BASE_UNIT);
     }
 
-    /// @notice Returns the amount of underlying tokens an rvToken can be redeemed for.
-    /// @return The amount of underlying tokens an rvToken can be redeemed for.
+    /// @notice Returns the amount of underlying tokens an avToken can be redeemed for.
+    /// @return The amount of underlying tokens an avToken can be redeemed for.
     function exchangeRate() public view returns (uint256) {
-        // Get the total supply of rvTokens.
-        uint256 rvTokenSupply = totalSupply;
+        // Get the total supply of avTokens.
+        uint256 avTokenSupply = totalSupply;
 
-        // If there are no rvTokens in circulation, return an exchange rate of 1:1.
-        if (rvTokenSupply == 0) return BASE_UNIT;
+        // If there are no avTokens in circulation, return an exchange rate of 1:1.
+        if (avTokenSupply == 0) return BASE_UNIT;
 
-        // Calculate the exchange rate by dividing the total holdings by the rvToken supply.
-        return totalHoldings().fdiv(rvTokenSupply, BASE_UNIT);
+        // Calculate the exchange rate by dividing the total holdings by the avToken supply.
+        return totalHoldings().fdiv(avTokenSupply, BASE_UNIT);
     }
 
     /// @notice Calculates the total amount of underlying tokens the Vault holds.
@@ -403,9 +404,9 @@ contract Vault is ERC20, Auth {
         return UNDERLYING.balanceOf(address(this));
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                              HARVEST LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted after a successful harvest.
     /// @param user The authorized user who triggered the harvest.
@@ -468,8 +469,8 @@ contract Vault is ERC20, Auth {
         // Compute fees as the fee percent multiplied by the profit.
         uint256 feesAccrued = totalProfitAccrued.fmul(feePercent, 1e18);
 
-        // If we accrued any fees, mint an equivalent amount of rvTokens.
-        // Authorized users can claim the newly minted rvTokens via claimFees.
+        // If we accrued any fees, mint an equivalent amount of avTokens.
+        // Authorized users can claim the newly minted avTokens via claimFees.
         _mint(address(this), feesAccrued.fdiv(exchangeRate(), BASE_UNIT));
 
         // Update max unlocked profit based on any remaining locked profit plus new profit.
@@ -499,9 +500,9 @@ contract Vault is ERC20, Auth {
         }
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                     STRATEGY DEPOSIT/WITHDRAWAL LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted after the Vault deposits into a strategy contract.
     /// @param user The authorized user who triggered the deposit.
@@ -575,9 +576,9 @@ contract Vault is ERC20, Auth {
         if (strategy.isCEther()) WETH(payable(address(UNDERLYING))).deposit{value: underlyingAmount}();
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                       STRATEGY TRUST/DISTRUST LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted when a strategy is set to trusted.
     /// @param user The authorized user who trusted the strategy.
@@ -614,9 +615,9 @@ contract Vault is ERC20, Auth {
         emit StrategyDistrusted(msg.sender, strategy);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                          WITHDRAWAL STACK LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted when a strategy is pushed to the withdrawal stack.
     /// @param user The authorized user who triggered the push.
@@ -834,9 +835,9 @@ contract Vault is ERC20, Auth {
         emit WithdrawalStackIndexesSwapped(msg.sender, index1, index2, newStrategy1, newStrategy2);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                          SEIZE STRATEGY LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted after a strategy is seized.
     /// @param user The authorized user who triggered the seize.
@@ -870,28 +871,28 @@ contract Vault is ERC20, Auth {
         ERC20(strategy).safeTransfer(msg.sender, strategy.balanceOf(address(this)));
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                              FEE CLAIM LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted after fees are claimed.
     /// @param user The authorized user who claimed the fees.
-    /// @param rvTokenAmount The amount of rvTokens that were claimed.
-    event FeesClaimed(address indexed user, uint256 rvTokenAmount);
+    /// @param avTokenAmount The amount of avTokens that were claimed.
+    event FeesClaimed(address indexed user, uint256 avTokenAmount);
 
     /// @notice Claims fees accrued from harvests.
-    /// @param rvTokenAmount The amount of rvTokens to claim.
-    /// @dev Accrued fees are measured as rvTokens held by the Vault.
-    function claimFees(uint256 rvTokenAmount) external requiresAuth {
-        emit FeesClaimed(msg.sender, rvTokenAmount);
+    /// @param avTokenAmount The amount of avTokens to claim.
+    /// @dev Accrued fees are measured as avTokens held by the Vault.
+    function claimFees(uint256 avTokenAmount) external requiresAuth {
+        emit FeesClaimed(msg.sender, avTokenAmount);
 
-        // Transfer the provided amount of rvTokens to the caller.
-        ERC20(this).safeTransfer(msg.sender, rvTokenAmount);
+        // Transfer the provided amount of avTokens to the caller.
+        ERC20(this).safeTransfer(msg.sender, avTokenAmount);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                     INITIALIZATION AND DESTRUCTION LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted when the Vault is initialized.
     /// @param user The authorized user who triggered the initialization.
@@ -922,9 +923,9 @@ contract Vault is ERC20, Auth {
         selfdestruct(payable(msg.sender));
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                           RECIEVE ETHER LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @dev Required for the Vault to receive unwrapped ETH.
     receive() external payable {}

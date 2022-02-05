@@ -9,18 +9,18 @@ import {Vault} from "../Vault.sol";
 /// @author Transmissions11 and JetJadeja
 /// @notice Module for configuring Vault parameters.
 contract VaultConfigurationModule is Auth {
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                                CONSTRUCTOR
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Creates a Vault configuration module.
     /// @param _owner The owner of the module.
     /// @param _authority The Authority of the module.
     constructor(address _owner, Authority _authority) Auth(_owner, _authority) {}
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                   DEFAULT VAULT PARAMETER CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted when the default fee percentage is updated.
     /// @param newDefaultFeePercent The new default fee percentage.
@@ -94,9 +94,9 @@ contract VaultConfigurationModule is Auth {
         emit DefaultTargetFloatPercentUpdated(newDefaultTargetFloatPercent);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                   CUSTOM VAULT PARAMETER CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Emitted when a Vault has its custom fee percentage set/updated.
     /// @param vault The Vault that had its custom fee percentage set/updated.
@@ -178,9 +178,9 @@ contract VaultConfigurationModule is Auth {
         emit CustomTargetFloatPercentUpdated(vault, customTargetFloatPercent);
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////
                        VAULT PARAMETER SYNC LOGIC
-    //////////////////////////////////////////////////////////////*/
+    ///////////////////////////////////////////////////////////// */
 
     /// @notice Syncs a Vault's fee percentage with either the Vault's custom fee
     /// percentage or the default fee percentage if a custom percentage is not set.

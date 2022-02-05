@@ -1,12 +1,18 @@
-[submodule "/Users/andrewredden/Development/Aphra/v0/lib/ds-test"]
-	path = /Users/andrewredden/Development/Aphra/v0/lib/ds-test
+[submodule "ds-test"]
+	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "/Users/andrewredden/Development/Aphra/v0/lib/solmate"]
-	path = /Users/andrewredden/Development/Aphra/v0/lib/solmate
+[submodule "solmate"]
+	path = lib/solmate
 	url = https://github.com/rari-capital/solmate
-[submodule "/Users/andrewredden/Development/Aphra/v0/lib/weiroll"]
-	path = /Users/andrewredden/Development/Aphra/v0/lib/weiroll
+	branch = main
+[submodule "weird-erc20"]
+	path = lib/weird-erc20
+	url = https://github.com/d-xo/weird-erc20
+	branch = main
+[submodule "weiroll"]
+	path = lib/weiroll
 	url = https://github.com/aphrafinance/weiroll
-[submodule "lib/vaults"]
-	path = lib/vaults
-	url = https://github.com/Rari-Capital/vaults
+	branch = main
+[submodule "lib/weird-erc20"]
+	path = lib/weird-erc20
+	url = https://github.com/d-xo/weird-erc20
