@@ -1,15 +1,11 @@
-[submodule "ds-test"]
+[submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "solmate"]
+[submodule "lib/solmate"]
 	path = lib/solmate
 	url = https://github.com/rari-capital/solmate
 	branch = main
-[submodule "weird-erc20"]
-	path = lib/weird-erc20
-	url = https://github.com/d-xo/weird-erc20
-	branch = main
-[submodule "weiroll"]
+[submodule "lib/weiroll"]
 	path = lib/weiroll
 	url = https://github.com/aphrafinance/weiroll
 	branch = main
