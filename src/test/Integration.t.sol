@@ -6,7 +6,7 @@ import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {MultiRolesAuthority} from "solmate/auth/authorities/MultiRolesAuthority.sol";
 
-import {MockERC20Strategy} from "./mocks/MockERC20Strategy.sol";
+import {USDVOverPegStrategy} from "../USDVOverPegStrategy.sol";
 
 import {VaultInitializationModule} from "../modules/VaultInitializationModule.sol";
 import {VaultConfigurationModule} from "../modules/VaultConfigurationModule.sol";
@@ -27,11 +27,9 @@ contract IntegrationTest is DSTestPlus {
 
     MockERC20 underlying;
 
-    MockERC20Strategy strategy1;
-    MockERC20Strategy strategy2;
-
+    USDVOverPegStrategy strategy1;
     function setUp() public {
-        underlying = new MockERC20("Mock Token", "TKN", 18);
+        underlying = new MockERC20("Mock Vader", "VADER", 18);
 
         multiRolesAuthority = new MultiRolesAuthority(address(this), Authority(address(0)));
 
@@ -39,14 +37,30 @@ contract IntegrationTest is DSTestPlus {
 
         vaultConfigurationModule = new VaultConfigurationModule(address(this), Authority(address(0)));
 
+        //run on a fork
         vaultInitializationModule = new VaultInitializationModule(
             vaultConfigurationModule,
             address(this),
             Authority(address(0))
         );
 
-        strategy1 = new MockERC20Strategy(underlying);
-        strategy2 = new MockERC20Strategy(underlying);
+        address GOVERNANCE = address(0x2101a22A8A6f2b60eF36013eFFCef56893cea983);
+        address POOL =  address(0x7abD51BbA7f9F6Ae87aC77e1eA1C5783adA56e5c);
+        address FACTORY =  address(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
+        address XVADER =  address(0x665ff8fAA06986Bd6f1802fA6C1D2e7d780a7369);
+        address VADERGATEWAY =  address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2); //needs deploy with vader ecosystem, for now fork and override with hevm
+        address UNIROUTER =  address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+        address WETH =  address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+        strategy1 = new USDVOverPegStrategy(
+        underlying,
+        GOVERNANCE,
+        POOL,
+        FACTORY,
+        XVADER,
+        VADERGATEWAY,
+        UNIROUTER,
+        WETH
+        );
     }
 
     function testIntegration() public {
@@ -76,23 +90,18 @@ contract IntegrationTest is DSTestPlus {
         vault.depositIntoStrategy(strategy1, 0.5e18);
         vault.pushToWithdrawalStack(strategy1);
 
-        vault.trustStrategy(strategy2);
-        vault.depositIntoStrategy(strategy2, 0.5e18);
-        vault.pushToWithdrawalStack(strategy2);
-
         vaultConfigurationModule.setDefaultFeePercent(0.2e18);
         assertEq(vault.feePercent(), 0.1e18);
 
         vaultConfigurationModule.syncFeePercent(vault);
         assertEq(vault.feePercent(), 0.2e18);
 
+        //peg arb swap to xvader
         underlying.transfer(address(strategy1), 0.25e18);
 
-        Strategy[] memory strategiesToHarvest = new Strategy[](2);
+        Strategy[] memory strategiesToHarvest = new Strategy[](1);
         strategiesToHarvest[0] = strategy1;
-        strategiesToHarvest[1] = strategy2;
 
-        underlying.transfer(address(strategy2), 0.25e18);
         vault.harvest(strategiesToHarvest);
 
         hevm.warp(block.timestamp + vault.harvestDelay());

@@ -4,10 +4,12 @@ pragma solidity 0.8.10;
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "solmate/auth/Auth.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
+import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-
+import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
 import {IVaderMinter} from "./interfaces/vader/IVaderMinter.sol";
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
+
 interface IUniswap {
     function swapETHForExactTokens(
         uint amountOut,
@@ -191,14 +193,90 @@ interface ICurve {
         uint256 min_dy
     ) external;
 }
+interface IERC20 {
+    /**
+     * @dev Returns the amount of tokens in existence.
+     */
+    function totalSupply() external view returns (uint256);
 
-interface IxVader {
+    /**
+     * @dev Returns the amount of tokens owned by `account`.
+     */
+    function balanceOf(address account) external view returns (uint256);
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    /**
+     * @dev Returns the remaining number of tokens that `spender` will be
+     * allowed to spend on behalf of `owner` through {transferFrom}. This is
+     * zero by default.
+     *
+     * This value changes when {approve} or {transferFrom} are called.
+     */
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    /**
+     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * IMPORTANT: Beware that changing an allowance with this method brings the risk
+     * that someone may use both the old and the new allowance by unfortunate
+     * transaction ordering. One possible solution to mitigate this race
+     * condition is to first reduce the spender's allowance to 0 and set the
+     * desired value afterwards:
+     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    /**
+     * @dev Moves `amount` tokens from `sender` to `recipient` using the
+     * allowance mechanism. `amount` is then deducted from the caller's
+     * allowance.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
+    /**
+     * @dev Emitted when `value` tokens are moved from one account (`from`) to
+     * another (`to`).
+     *
+     * Note that `value` may be zero.
+     */
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    /**
+     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
+     * a call to {approve}. `value` is the new allowance.
+     */
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+interface IxVader is IERC20 {
     function enter(uint256 amount) external;
     function leave(uint256 share) external;
 }
 
 abstract contract VaderGateway is Auth, IVaderMinter {
 
+    using SafeTransferLib for ERC20;
+    using FixedPointMathLib for uint256;
+    using SafeCastLib for uint256;
     IVaderMinter public immutable VADERMINTER;
 
     ERC20 public immutable VADER;
@@ -216,8 +294,8 @@ abstract contract VaderGateway is Auth, IVaderMinter {
         USDV = ERC20(USDV_);
 
         //set approvals
-        VADER.safeApprove(VADERMINTER_, uint(-1));
-        USDV.safeApprove(VADERMINTER_, uint(-1));
+        VADER.safeApprove(VADERMINTER_, type(uint256).max);
+        USDV.safeApprove(VADERMINTER_, type(uint256).max);
     }
 
 
@@ -278,7 +356,7 @@ abstract contract VaderGateway is Auth, IVaderMinter {
     returns (uint256 vAmount) {
         USDV.safeTransferFrom(msg.sender, address(this), uAmount);
         vAmount = VADERMINTER.burn(uAmount, vAmountMinOut);
-        VADER.safeTransferFrom(address(this), msg.sender, vAmount)
+        VADER.safeTransferFrom(address(this), msg.sender, vAmount);
     }
     /*
      * @dev Partner mint function that receives Vader and mints USDV.
@@ -306,7 +384,7 @@ abstract contract VaderGateway is Auth, IVaderMinter {
     function partnerBurn(uint256 uAmount) external requiresAuth returns (uint256 vAmount) {
         USDV.transferFrom(msg.sender, address(this), uAmount);
         vAmount = VADERMINTER.partnerBurn(uAmount);
-        VADER.safeTranferFrom(address(this), msg.sender, vAmount);
+        VADER.safeTransferFrom(address(this), msg.sender, vAmount);
     }
 
 }
@@ -348,12 +426,12 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         UNISWAP = IUniswap(UNIROUTER_);
         WETH = ERC20(WETH_);
 
-        USDV.safeApprove(POOL_, uint256(-1)); //set unlimited approval to the pool for usdv
-        DAI.safeApprove(UNIROUTER_, uint256(-1));
-        USDC.safeApprove(UNIROUTER_, uint256(-1));
-        USDT.safeApprove(UNIROUTER_, uint256(-1));
-        WETH.safeApprove(UNIROUTER_, uint256(-1)); //prob not needed
-        UNDERLYING.safeApprove(VADERGATEWAY_, uint256(-1));
+        USDV.safeApprove(POOL_, type(uint256).max); //set unlimited approval to the pool for usdv
+        DAI.safeApprove(UNIROUTER_, type(uint256).max);
+        USDC.safeApprove(UNIROUTER_, type(uint256).max);
+        USDT.safeApprove(UNIROUTER_, type(uint256).max);
+        WETH.safeApprove(UNIROUTER_, type(uint256).max); //prob not needed
+        UNDERLYING.safeApprove(VADERGATEWAY_, type(uint256).max);
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -361,10 +439,10 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     ///////////////////////////////////////////////////////////// */
 
 
-    function hit(uint256 vAmount_) external requiresAuth () {
+    function hit(uint256 vAmount_, int128 exitCoin_, address[] memory pathToVader_) external requiresAuth () {
         unstakeUnderlying(vAmount_);
-        VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)));
-        uint vAmount = swapUSDVToVader(uAmount);
+        uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)));
+        uint vAmount = swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
         stakeUnderlying(vAmount);
     }
 
@@ -409,7 +487,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     uint256 internal immutable BASE_UNIT;
 
     function stakeUnderlying(uint vAmount) internal {
-        XVADER.enter(UNDERLYING.balanceOf(address(this)));
+        XVADER.enter(vAmount);
     }
     function unstakeUnderlying(uint vAmount) internal {
         uint shares = (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
@@ -417,32 +495,38 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         XVADER.leave(shares);
     }
 
-    function swapUSDVToVader(uint uAmount) internal returns (uint vAmount) {
+    function swapUSDVToVader(uint uAmount_, int128 exitCoin_, address[] memory path_) internal returns (uint vAmount) {
         //get best exit address
-        uint256[4] memory rates = FACTORY.get_rates(address(POOL));
-        uint[3] arr = [1, rates[1], address(DAI)]; //index, rate, address
-    unchecked {
-        for (var i = 2; i < 4; i++) { //ignore 0 as its usdv
-            if (rates[i] > arr[1]) {
-                arr = [
-                    i, rates[i], i == 2 ? address(USDC) : address(USDT)
-                ];
+        address exitCoinAddr = address(DAI);
+        if (exitCoin_ == int128(1)) {
+            exitCoinAddr = address(USDC);
+        } else if (exitCoin_ == int128(2)) {
+            exitCoinAddr = address(USDT);
+        }
+
+        POOL.exchange(0, exitCoin_, uAmount_, uint(1));
+
+        address[] memory path;
+        if(path_.length == 0) {
+            path = new address[](3);
+            path[0] = exitCoinAddr;
+            path[1] = address(WETH);
+            path[2] = address(UNDERLYING); //vader eth pool has the best depth for vader
+        } else {
+            path = new address[](path_.length +1);
+            path[0] = exitCoinAddr;
+
+            for (uint i = 0; i < path_.length; i++) {
+                path[i+1] = path_[i];
             }
         }
-    }
-        pool.exchange_underlying(0, arr[0], uAmount, uint(1));
 
-        address[] memory path = new address[](3);
-
-        path[0] = arr[2];
-        path[1] = WETH;
-        path[2] = address(UNDERLYING); //vader eth pool has the best depth for vader
-
-        uint256[] memory amounts = uniswap.getAmountsOut(_amount, path);
+        uint256 amountIn = ERC20(exitCoinAddr).balanceOf(address(this));
+        uint256[] memory amounts = UNISWAP.getAmountsOut(amountIn, path);
         vAmount = amounts[amounts.length - 1];
-        uniswap.swapExactTokensForTokens(
-            _amount,
-            amountOut,
+        UNISWAP.swapExactTokensForTokens(
+            amountIn,
+            vAmount,
             path,
             address(this),
             block.timestamp
@@ -455,7 +539,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
         if (cTokenSupply == 0) return BASE_UNIT;
         uint underlyingBalance;
-        uint stakedBalance = (XVADER.balanceOf(this) * UNDERLYING.balanceOf(address(XVADER))) / XVADER.totalSupply();
+        uint stakedBalance = (XVADER.balanceOf(address(this)) * UNDERLYING.balanceOf(address(XVADER))) / XVADER.totalSupply();
         unchecked {
             underlyingBalance = UNDERLYING.balanceOf(address(this)) + stakedBalance;
         }

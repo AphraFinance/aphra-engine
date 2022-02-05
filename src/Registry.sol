@@ -1,11 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
-
-library PoolLib {
-    function healthFactor() internal returns (uint32) {
-        return 1;
-    }
-}
 struct PegTarget {
     address pool;
     uint32 healthFactor; // std deviation from the mid point
