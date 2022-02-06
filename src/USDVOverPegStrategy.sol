@@ -9,6 +9,7 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {Bytes32AddressLib} from "solmate/utils/Bytes32AddressLib.sol";
 import {IVaderMinter} from "./interfaces/vader/IVaderMinter.sol";
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
+import "./test/console.sol";
 
 interface IUniswap {
     function swapETHForExactTokens(
@@ -62,122 +63,6 @@ interface IUniswap {
 }
 
 
-
-interface ICurveFactory {
-    event BasePoolAdded(address base_pool, address implementat);
-    event MetaPoolDeployed(
-        address coin,
-        address base_pool,
-        uint256 A,
-        uint256 fee,
-        address deployer
-    );
-
-    function find_pool_for_coins(address _from, address _to)
-    external
-    view
-    returns (address);
-
-    function find_pool_for_coins(
-        address _from,
-        address _to,
-        uint256 i
-    ) external view returns (address);
-
-    function get_n_coins(address _pool)
-    external
-    view
-    returns (uint256, uint256);
-
-    function get_coins(address _pool) external view returns (address[2] memory);
-
-    function get_underlying_coins(address _pool)
-    external
-    view
-    returns (address[8] memory);
-
-    function get_decimals(address _pool)
-    external
-    view
-    returns (uint256[2] memory);
-
-    function get_underlying_decimals(address _pool)
-    external
-    view
-    returns (uint256[8] memory);
-
-    function get_rates(address _pool) external view returns (uint256[2] memory);
-
-    function get_balances(address _pool)
-    external
-    view
-    returns (uint256[2] memory);
-
-    function get_underlying_balances(address _pool)
-    external
-    view
-    returns (uint256[8] memory);
-
-    function get_A(address _pool) external view returns (uint256);
-
-    function get_fees(address _pool) external view returns (uint256, uint256);
-
-    function get_admin_balances(address _pool)
-    external
-    view
-    returns (uint256[2] memory);
-
-    function get_coin_indices(
-        address _pool,
-        address _from,
-        address _to
-    )
-    external
-    view
-    returns (
-        int128,
-        int128,
-        bool
-    );
-
-    function add_base_pool(
-        address _base_pool,
-        address _metapool_implementation,
-        address _fee_receiver
-    ) external;
-
-    function deploy_metapool(
-        address _base_pool,
-        string memory _name,
-        string memory _symbol,
-        address _coin,
-        uint256 _A,
-        uint256 _fee
-    ) external returns (address);
-
-    function commit_transfer_ownership(address addr) external;
-
-    function accept_transfer_ownership() external;
-
-    function set_fee_receiver(address _base_pool, address _fee_receiver)
-    external;
-
-    function convert_fees() external returns (bool);
-
-    function admin() external view returns (address);
-
-    function future_admin() external view returns (address);
-
-    function pool_list(uint256 arg0) external view returns (address);
-
-    function pool_count() external view returns (uint256);
-
-    function base_pool_list(uint256 arg0) external view returns (address);
-
-    function base_pool_count() external view returns (uint256);
-
-    function fee_receiver(address arg0) external view returns (address);
-}
 interface ICurve {
     function exchange(
         int128 i,
@@ -272,7 +157,7 @@ interface IxVader is IERC20 {
     function leave(uint256 share) external;
 }
 
-abstract contract VaderGateway is Auth, IVaderMinter {
+contract VaderGateway is Auth, IVaderMinter {
 
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
@@ -285,9 +170,10 @@ abstract contract VaderGateway is Auth, IVaderMinter {
     constructor(
         address VADERMINTER_,
         address GOVERNANCE_,
+        Authority AUTHORITY_,
         address VADER_,
         address USDV_
-    ) Auth(GOVERNANCE_, Authority(address(0)))
+    ) Auth(GOVERNANCE_, Authority(AUTHORITY_))
     {
         VADERMINTER = IVaderMinter(VADERMINTER_);
         VADER = ERC20(VADER_);
@@ -400,7 +286,6 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
     ERC20 public immutable WETH;
     ICurve public immutable POOL;
-    ICurveFactory public immutable FACTORY;
     IUniswap public immutable UNISWAP;
     IxVader public immutable XVADER;
     IVaderMinter public immutable VADERGATEWAY;
@@ -408,18 +293,17 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     constructor(
         ERC20 UNDERLYING_,
         address GOVERNANCE_,
+        Authority AUTHORITY_,
         address POOL_,
-        address FACTORY_,
         address XVADER_,
         address VADERGATEWAY_,
         address UNIROUTER_,
         address WETH_
-    ) Auth(GOVERNANCE_, Authority(address(0))) { //set authority to something that enables operators for aphra
+    ) Auth(GOVERNANCE_, AUTHORITY_) { //set authority to something that enables operators for aphra
         UNDERLYING = UNDERLYING_; //vader
         BASE_UNIT = 10**UNDERLYING_.decimals();
 
         POOL = ICurve(POOL_);
-        FACTORY = ICurveFactory(FACTORY_);
         XVADER = IxVader(XVADER_);
 
         VADERGATEWAY = IVaderMinter(VADERGATEWAY_); // our partner minter
@@ -431,6 +315,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         USDC.safeApprove(UNIROUTER_, type(uint256).max);
         USDT.safeApprove(UNIROUTER_, type(uint256).max);
         WETH.safeApprove(UNIROUTER_, type(uint256).max); //prob not needed
+        UNDERLYING.safeApprove(XVADER_, type(uint256).max);
         UNDERLYING.safeApprove(VADERGATEWAY_, type(uint256).max);
     }
 
@@ -440,10 +325,10 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
 
     function hit(uint256 vAmount_, int128 exitCoin_, address[] memory pathToVader_) external requiresAuth () {
-        unstakeUnderlying(vAmount_);
+        _unstakeUnderlying(vAmount_);
         uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)));
-        uint vAmount = swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
-        stakeUnderlying(vAmount);
+        uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
+        _stakeUnderlying(vAmount);
     }
 
     function isCEther() external pure override returns (bool) {
@@ -455,19 +340,18 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     }
 
     function mint(uint256 amount) external override returns (uint256) { //TODO:: this needs to be authed to the vault
-        _mint(msg.sender, amount.fdiv(exchangeRate(), BASE_UNIT));
-
+        _mint(msg.sender, amount.fdiv(_exchangeRate(), BASE_UNIT));
         UNDERLYING.safeTransferFrom(msg.sender, address(this), amount);
-        stakeUnderlying(UNDERLYING.balanceOf(address(this)));
+        _stakeUnderlying(UNDERLYING.balanceOf(address(this)));
         return 0;
     }
 
     function redeemUnderlying(uint256 amount) external override returns (uint256) {
-        _burn(msg.sender, amount.fdiv(exchangeRate(), BASE_UNIT));
+        _burn(msg.sender, amount.fdiv(_exchangeRate(), BASE_UNIT));
 
         if (UNDERLYING.balanceOf(address(this)) < amount) {
             uint leaveAmount = amount - UNDERLYING.balanceOf(address(this));
-            unstakeUnderlying(leaveAmount);
+            _unstakeUnderlying(leaveAmount);
         }
         UNDERLYING.safeTransfer(msg.sender, amount);
 
@@ -475,7 +359,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     }
 
     function balanceOfUnderlying(address user) external view override returns (uint256) {
-        return balanceOf[user].fmul(exchangeRate(), BASE_UNIT);
+        return balanceOf[user].fmul(_exchangeRate(), BASE_UNIT);
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -486,25 +370,29 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
     uint256 internal immutable BASE_UNIT;
 
-    function stakeUnderlying(uint vAmount) internal {
+    function _stakeUnderlying(uint vAmount) internal {
         XVADER.enter(vAmount);
     }
-    function unstakeUnderlying(uint vAmount) internal {
-        uint shares = (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
 
+    function _unstakeUnderlying(uint vAmount) internal {
+        uint shares = (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
+        console.logString("shares to exit");
+        console.logUint(shares);
+        console.logString("xvader balance");
+        console.logUint(XVADER.balanceOf(address(this)));
         XVADER.leave(shares);
     }
 
-    function swapUSDVToVader(uint uAmount_, int128 exitCoin_, address[] memory path_) internal returns (uint vAmount) {
+    function _swapUSDVToVader(uint uAmount_, int128 exitCoin_, address[] memory path_) internal returns (uint vAmount) {
         //get best exit address
+        //get mins for swap
         address exitCoinAddr = address(DAI);
         if (exitCoin_ == int128(1)) {
             exitCoinAddr = address(USDC);
         } else if (exitCoin_ == int128(2)) {
             exitCoinAddr = address(USDT);
         }
-
-        POOL.exchange(0, exitCoin_, uAmount_, uint(1));
+        POOL.exchange_underlying(0, exitCoin_, uAmount_, uint(1));
 
         address[] memory path;
         if(path_.length == 0) {
@@ -513,12 +401,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
             path[1] = address(WETH);
             path[2] = address(UNDERLYING); //vader eth pool has the best depth for vader
         } else {
-            path = new address[](path_.length +1);
-            path[0] = exitCoinAddr;
-
-            for (uint i = 0; i < path_.length; i++) {
-                path[i+1] = path_[i];
-            }
+            path = path_;
         }
 
         uint256 amountIn = ERC20(exitCoinAddr).balanceOf(address(this));
@@ -534,7 +417,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
     }
 
-    function exchangeRate() internal view returns (uint256) {
+    function _exchangeRate() internal view returns (uint256) {
         uint256 cTokenSupply = totalSupply;
 
         if (cTokenSupply == 0) return BASE_UNIT;
