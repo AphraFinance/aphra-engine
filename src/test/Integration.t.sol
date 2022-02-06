@@ -95,7 +95,7 @@ contract IntegrationTest is DSTestPlus {
     address constant XVADER =  address(0x665ff8fAA06986Bd6f1802fA6C1D2e7d780a7369);
     address constant UNIROUTER =  address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
     address constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-    IVaderMinterExtended constant VADER_MINTER = IVaderMinterExtended(0xc33FE4A5c2990Cc0a62AB26A74604EA57ad955AA);
+    IVaderMinterExtended constant VADER_MINTER = IVaderMinterExtended(0x00aadC47d91fD9CaC3369E6045042f9F99216B98);
 
     IVaderMinter vaderGateway;
 
@@ -136,9 +136,9 @@ contract IntegrationTest is DSTestPlus {
 
         //acquire vader for the test harness
         //setup partner mint storage
-        //become the vader deployer
+        //become the vader governance
         hevm.startPrank(
-            address(0x76791a5aE935675DE187556C95a6Af1997C0633F), address(0x76791a5aE935675DE187556C95a6Af1997C0633F)
+            address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), address(0x76791a5aE935675DE187556C95a6Af1997C0633F)
         );
         //whitelist our vader gateway for minting usdv
         VADER_MINTER.whitelistPartner(
@@ -166,10 +166,6 @@ contract IntegrationTest is DSTestPlus {
             address(this),
             block.timestamp
         );
-
-        console.logUint(address(this).balance);
-        console.log(address(this));
-        console.logUint(underlying.balanceOf(address(this)));
     }
 
 
@@ -215,7 +211,7 @@ contract IntegrationTest is DSTestPlus {
 
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
-        strategy1.hit(uint(8000e18), int128(1), new address[](0));
+        strategy1.hit(uint(800e18), int128(1), new address[](0));
         hevm.stopPrank();
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
         strategiesToHarvest[0] = strategy1;

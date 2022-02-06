@@ -60,32 +60,11 @@ interface IVaderMinter {
     external
     returns (uint256 uAmount);
 
-    /*
-     * @dev Public burn function that receives USDV and mints Vader.
-     * @param uAmount USDV amount to burn.
-     * @param vAmountMinOut Vader minimum amount to get back from the burn.
-     * @returns vAmount in Vader, represents the Vader amount received from the burn.
-     *
-     **/
     function burn(uint256 uAmount, uint256 vAmountMinOut)
     external
     returns (uint256 vAmount);
-    /*
-     * @dev Partner mint function that receives Vader and mints USDV.
-     * @param vAmount Vader amount to burn.
-     * @returns uAmount in USDV, represents the USDV amount received from the mint.
-     *
-     * Requirements:
-     * - Can only be called by whitelisted partners.
-     **/
-    function partnerMint(uint256 vAmount) external returns (uint256 uAmount);
-    /*
-     * @dev Partner burn function that receives USDV and mints Vader.
-     * @param uAmount USDV amount to burn.
-     * @returns vAmount in Vader, represents the Vader amount received from the mint.
-     *
-     * Requirements:
-     * - Can only be called by whitelisted partners.
-     **/
-    function partnerBurn(uint256 uAmount) external returns (uint256 vAmount);
+
+    function partnerMint(uint256 vAmount, uint256 uAmountMinOut) external returns (uint256 uAmount);
+
+    function partnerBurn(uint256 uAmount, uint256 vAmountMinOut) external returns (uint256 vAmount);
 }

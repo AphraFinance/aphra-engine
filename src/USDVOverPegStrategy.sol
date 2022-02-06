@@ -181,6 +181,7 @@ contract VaderGateway is Auth, IVaderMinter {
 
         //set approvals
         VADER.safeApprove(VADERMINTER_, type(uint256).max);
+        VADER.safeApprove(address(USDV), type(uint256).max);
         USDV.safeApprove(VADERMINTER_, type(uint256).max);
     }
 
@@ -252,12 +253,18 @@ contract VaderGateway is Auth, IVaderMinter {
      * Requirements:
      * - Can only be called by whitelisted partners.
      **/
-    function partnerMint(uint256 vAmount) external requiresAuth returns (uint256 uAmount) {
+    function partnerMint(uint256 vAmount, uint256 uMinOut) external requiresAuth returns (uint256 uAmount) {
         VADER.transferFrom(msg.sender, address(this), vAmount);
 
-        uAmount = VADERMINTER.partnerMint(vAmount);
+        uAmount = VADERMINTER.partnerMint(vAmount, uMinOut);
+        console.logString("uAmount");
+        console.logUint(uAmount);
 
-        USDV.safeTransferFrom(address(this), msg.sender, uAmount);
+        console.logString("Actual Balance");
+        console.logUint(USDV.balanceOf(address(this)));
+
+        USDV.safeTransfer(msg.sender, uAmount);
+        console.logString("Post transfer");
     }
     /*
      * @dev Partner burn function that receives USDV and mints Vader.
@@ -267,10 +274,10 @@ contract VaderGateway is Auth, IVaderMinter {
      * Requirements:
      * - Can only be called by whitelisted partners.
      **/
-    function partnerBurn(uint256 uAmount) external requiresAuth returns (uint256 vAmount) {
+    function partnerBurn(uint256 uAmount, uint256 vMinOut) external requiresAuth returns (uint256 vAmount) {
         USDV.transferFrom(msg.sender, address(this), uAmount);
-        vAmount = VADERMINTER.partnerBurn(uAmount);
-        VADER.safeTransferFrom(address(this), msg.sender, vAmount);
+        vAmount = VADERMINTER.partnerBurn(uAmount, vMinOut);
+        VADER.safeTransfer(msg.sender, vAmount);
     }
 
 }
@@ -326,9 +333,10 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
     function hit(uint256 vAmount_, int128 exitCoin_, address[] memory pathToVader_) external requiresAuth () {
         _unstakeUnderlying(vAmount_);
-        uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)));
+        uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)), uint(1));
         uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
         _stakeUnderlying(vAmount);
+        require(vAmount > vAmount_, "Failed to arb for profit");
     }
 
     function isCEther() external pure override returns (bool) {
@@ -387,9 +395,9 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         //get best exit address
         //get mins for swap
         address exitCoinAddr = address(DAI);
-        if (exitCoin_ == int128(1)) {
+        if (exitCoin_ == int128(2)) {
             exitCoinAddr = address(USDC);
-        } else if (exitCoin_ == int128(2)) {
+        } else if (exitCoin_ == int128(3)) {
             exitCoinAddr = address(USDT);
         }
         POOL.exchange_underlying(0, exitCoin_, uAmount_, uint(1));
@@ -405,6 +413,8 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         }
 
         uint256 amountIn = ERC20(exitCoinAddr).balanceOf(address(this));
+        console.logString("amountIn");
+        console.logUint(amountIn);
         uint256[] memory amounts = UNISWAP.getAmountsOut(amountIn, path);
         vAmount = amounts[amounts.length - 1];
         UNISWAP.swapExactTokensForTokens(
