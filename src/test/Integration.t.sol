@@ -2,7 +2,7 @@
 pragma solidity 0.8.10;
 
 import {Authority} from "solmate/auth/Auth.sol";
-import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
+import {DSTestPlus} from "./utils/DSTestPlus.sol";
 //import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {MultiRolesAuthority} from "solmate/auth/authorities/MultiRolesAuthority.sol";
@@ -211,7 +211,9 @@ contract IntegrationTest is DSTestPlus {
 
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
+        startMeasuringGas("strategy hit");
         strategy1.hit(uint(800e18), int128(1), new address[](0));
+        stopMeasuringGas();
         hevm.stopPrank();
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
         strategiesToHarvest[0] = strategy1;

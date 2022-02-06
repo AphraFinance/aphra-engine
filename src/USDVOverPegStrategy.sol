@@ -336,11 +336,28 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)), uint(1));
         uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
         _stakeUnderlying(vAmount);
-        require(vAmount > vAmount_, "Failed to arb for profit");
+        console.logString("vAmount In");
+        console.logUint(vAmount_);
+        console.logString("vAmount Out");
+        console.logUint(vAmount);
+//        require(vAmount > vAmount_, "Failed to arb for profit");
     }
 
     function isCEther() external pure override returns (bool) {
         return false;
+    }
+
+    function ethToUnderlying(uint256 ethAmount_) external view returns (uint256) {
+        if (ethAmount_ == 0) {
+            return 0;
+        }
+
+        address[] memory path = new address[](2);
+        path[0] = address(WETH);
+        path[1] = address(UNDERLYING);
+        uint256[] memory amounts = UNISWAP.getAmountsOut(ethAmount_, path);
+
+        return amounts[amounts.length - 1];
     }
 
     function underlying() external view override returns (ERC20) {
@@ -382,12 +399,12 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         XVADER.enter(vAmount);
     }
 
+    function _computeStakedSharesForUnderlying(uint vAmount) internal returns(uint256) {
+        return (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
+    }
+
     function _unstakeUnderlying(uint vAmount) internal {
-        uint shares = (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
-        console.logString("shares to exit");
-        console.logUint(shares);
-        console.logString("xvader balance");
-        console.logUint(XVADER.balanceOf(address(this)));
+        uint shares = _computeStakedSharesForUnderlying(vAmount);
         XVADER.leave(shares);
     }
 
@@ -427,12 +444,16 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
     }
 
+    function _computeStakedUnderlying() internal view returns (uint256) {
+        return (XVADER.balanceOf(address(this)) * UNDERLYING.balanceOf(address(XVADER))) / XVADER.totalSupply();
+    }
+
     function _exchangeRate() internal view returns (uint256) {
         uint256 cTokenSupply = totalSupply;
 
         if (cTokenSupply == 0) return BASE_UNIT;
         uint underlyingBalance;
-        uint stakedBalance = (XVADER.balanceOf(address(this)) * UNDERLYING.balanceOf(address(XVADER))) / XVADER.totalSupply();
+        uint stakedBalance = _computeStakedUnderlying();
         unchecked {
             underlyingBalance = UNDERLYING.balanceOf(address(this)) + stakedBalance;
         }
