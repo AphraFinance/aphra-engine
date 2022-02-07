@@ -140,6 +140,8 @@ interface ICurve {
         uint256 dx,
         uint256 min_dy
     ) external;
+
+    function balances(uint256) external view returns (uint256);
 }
 
 interface IXVader is IERC20 {
