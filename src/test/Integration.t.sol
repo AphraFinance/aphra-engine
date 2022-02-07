@@ -205,24 +205,21 @@ contract IntegrationTest is DSTestPlus {
         multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
 
 
-
-        //setup governance as the caller for the strategy needs
-        multiRolesAuthority.setUserRole(address(strategy1), 2, true);
-        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerMint.selector, true);
-        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerBurn.selector, true);
-
-
-
-
         vaultConfigurationModule.setDefaultFeePercent(0.1e18);
         vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
         vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
         vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
 
+        //deploy and initialize vault
         Vault vault = vaultFactory.deployVault(underlying);
         vaultInitializationModule.initializeVault(vault);
 
-        //setup vault as the caller for the strategy mint
+        //setup setup strategy as a valid auth for the minter
+        multiRolesAuthority.setUserRole(address(strategy1), 2, true);
+        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerMint.selector, true);
+        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerBurn.selector, true);
+
+        //setup vault as as a valid auth for the strategy minter
         multiRolesAuthority.setUserRole(address(vault), 3, true);
         multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
 
@@ -250,8 +247,9 @@ contract IntegrationTest is DSTestPlus {
         hevm.stopPrank();
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
         strategiesToHarvest[0] = strategy1;
-
+        startMeasuringGas("Vault Harvest");
         vault.harvest(strategiesToHarvest);
+        stopMeasuringGas();
 
         hevm.warp(block.timestamp + vault.harvestDelay());
 
