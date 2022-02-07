@@ -147,9 +147,9 @@ contract IntegrationTest is DSTestPlus {
         hevm.stopPrank();
 
         giveTokens(address(underlying), 100_000_000e18);
-        
-        // hevm.deal(address(this), uint(100 ether));
-        // _buyUnderlyingFromUniswap();//buy 5 eth worth of vader from uniswap
+
+//         hevm.deal(address(this), uint(100 ether));
+//         _buyUnderlyingFromUniswap(uint(5 ether));//buy 5 eth worth of vader from uniswap
     }
 
     function giveTokens(address token, uint256 amount) internal {
@@ -173,15 +173,16 @@ contract IntegrationTest is DSTestPlus {
         assertTrue(false);
     }
 
-    function _buyUnderlyingFromUniswap() internal {
+    function _buyUnderlyingFromUniswap(uint256 amount) internal {
         address[] memory path = new address[](2);
 
         path[0] = WETH;
         path[1] = address(underlying);
 
         uint256[] memory amounts = IUniswap(UNIROUTER).getAmountsOut(
-            uint(5 ether), path
+            amount, path
         );
+
         uint256 amountOut = amounts[amounts.length - 1];
 
         IUniswap(UNIROUTER).swapETHForExactTokens{value:uint(5 ether)}(
@@ -212,6 +213,7 @@ contract IntegrationTest is DSTestPlus {
 
 
 
+
         vaultConfigurationModule.setDefaultFeePercent(0.1e18);
         vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
         vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
@@ -219,6 +221,10 @@ contract IntegrationTest is DSTestPlus {
 
         Vault vault = vaultFactory.deployVault(underlying);
         vaultInitializationModule.initializeVault(vault);
+
+        //setup vault as the caller for the strategy mint
+        multiRolesAuthority.setUserRole(address(vault), 3, true);
+        multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
 
         uint256 treasury = 1_000_000e18;
 
@@ -237,8 +243,9 @@ contract IntegrationTest is DSTestPlus {
 
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
+        uint256 hitAmount = 800_000e18;
         startMeasuringGas("strategy hit");
-        strategy1.hit(uint(treasury), int128(1), new address[](0));
+        strategy1.hit(hitAmount, int128(1), new address[](0));
         stopMeasuringGas();
         hevm.stopPrank();
         Strategy[] memory strategiesToHarvest = new Strategy[](1);

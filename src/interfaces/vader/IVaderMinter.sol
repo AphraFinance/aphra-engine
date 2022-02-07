@@ -54,16 +54,6 @@ interface IVaderMinter {
     // USDV Contract for Mint / Burn Operations
     function usdv() external view returns (address);
 
-    function getPublicFee() external view returns (uint256);
-
-    function mint(uint256 vAmount, uint256 uAmountMinOut)
-    external
-    returns (uint256 uAmount);
-
-    function burn(uint256 uAmount, uint256 vAmountMinOut)
-    external
-    returns (uint256 vAmount);
-
     function partnerMint(uint256 vAmount, uint256 uAmountMinOut) external returns (uint256 uAmount);
 
     function partnerBurn(uint256 uAmount, uint256 vAmountMinOut) external returns (uint256 vAmount);
