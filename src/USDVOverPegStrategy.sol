@@ -65,7 +65,11 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
         _stakeUnderlying(vAmount);
         require(vAmount > vAmount_, "Failed to arb for profit");
-        require(POOL.get_virtual_price() >= 1e18, "peg must be at or above 1");
+    unchecked {
+
+        require((POOL.balance(0) * 1e3 / POOL.balance(1)) >= 1e3, "peg must be at or above 1");
+    }
+
     }
 
     function isCEther() external pure override returns (bool) {

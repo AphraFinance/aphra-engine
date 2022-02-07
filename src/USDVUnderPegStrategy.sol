@@ -63,7 +63,9 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnderP
         uint vAmount = VADERGATEWAY.partnerBurn(uAmount_, uint(1));
         uint uAmount = _swapToUnderlying(vAmount, enterCoin_, path_);
         require(uAmount > uAmount_, "Failed to arb for profit");
-        require(POOL.get_virtual_price() >= 1e18, "peg must be at or above 1");
+    unchecked {
+        require((POOL.balance(0) * 1e3 / POOL.balance(1)) <= 1e3, "peg must be at or below 1");
+    }
     }
 
     function isCEther() external pure override returns (bool) {
@@ -79,7 +81,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnderP
         path[0] = address(WETH);
         path[1] = address(UNDERLYING);
         uint256[] memory amounts = UNISWAP.getAmountsOut(ethAmount_, path);
-        //
+
         return amounts[amounts.length - 1];
     }
 
