@@ -14,6 +14,8 @@ import {VaultConfigurationModule} from "../modules/VaultConfigurationModule.sol"
 
 import {Strategy} from "../interfaces/Strategy.sol";
 
+import {ICurve} from "../interfaces/StrategyInterfaces.sol";
+
 import {Vault} from "../Vault.sol";
 import {VaultFactory} from "../VaultFactory.sol";
 import "./console.sol";
@@ -148,8 +150,26 @@ contract IntegrationTest is DSTestPlus {
 
         giveTokens(address(underlying), 100_000_000e18);
 
-//         hevm.deal(address(this), uint(100 ether));
-//         _buyUnderlyingFromUniswap(uint(5 ether));//buy 5 eth worth of vader from uniswap
+        address dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+
+        giveTokens(dai, 100_000_000e18);
+
+        ERC20(dai).approve(POOL, type(uint256).max);
+
+        printPeg();
+
+        ICurve(POOL).exchange_underlying(1, int128(0), 500_000e18, uint(1));
+
+        printPeg();
+    }
+
+    function printPeg() internal {
+        uint256 usdv_amount = ICurve(POOL).balances(0);
+        uint256 tpool_amount = ICurve(POOL).balances(1);
+
+        console.log("usdv", usdv_amount);
+        console.log("3pool", tpool_amount);
+        console.log("peg/1e3", tpool_amount * 1e3 / usdv_amount);
     }
 
     function giveTokens(address token, uint256 amount) internal {
@@ -240,7 +260,7 @@ contract IntegrationTest is DSTestPlus {
 
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
-        uint256 hitAmount = 800_000e18;
+        uint256 hitAmount = 80_000e18;
         startMeasuringGas("strategy hit");
         strategy1.hit(hitAmount, int128(1), new address[](0));
         stopMeasuringGas();
@@ -252,6 +272,8 @@ contract IntegrationTest is DSTestPlus {
         stopMeasuringGas();
 
         hevm.warp(block.timestamp + vault.harvestDelay());
+
+        printPeg();
 
 //        vault.withdraw(1363636363636363636);
 //        assertEq(vault.balanceOf(address(this)), 0);
