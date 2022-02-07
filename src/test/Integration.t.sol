@@ -145,8 +145,32 @@ contract IntegrationTest is DSTestPlus {
             address(vaderGateway), uint(0), uint256(5e24), uint256(5e24), uint(0)
         );
         hevm.stopPrank();
-        hevm.deal(address(this), uint(100 ether));
-        _buyUnderlyingFromUniswap();//buy 5 eth worth of vader from uniswap
+
+        giveTokens(address(underlying), 100_000_000e18);
+        
+        // hevm.deal(address(this), uint(100 ether));
+        // _buyUnderlyingFromUniswap();//buy 5 eth worth of vader from uniswap
+    }
+
+    function giveTokens(address token, uint256 amount) internal {
+        // Edge case - balance is already set for some reason
+        if (ERC20(token).balanceOf(address(this)) == amount) return;
+
+        for (int256 i = 0; i < 100; i++) {
+            // Scan the storage for the balance storage slot
+            bytes32 prevValue = hevm.load(token, keccak256(abi.encode(address(this), uint256(i))));
+            hevm.store(token, keccak256(abi.encode(address(this), uint256(i))), bytes32(amount));
+            if (ERC20(token).balanceOf(address(this)) == amount) {
+                // Found it
+                return;
+            } else {
+                // Keep going after restoring the original value
+                hevm.store(token, keccak256(abi.encode(address(this), uint256(i))), prevValue);
+            }
+        }
+
+        // We have failed if we reach here
+        assertTrue(false);
     }
 
     function _buyUnderlyingFromUniswap() internal {
@@ -196,11 +220,13 @@ contract IntegrationTest is DSTestPlus {
         Vault vault = vaultFactory.deployVault(underlying);
         vaultInitializationModule.initializeVault(vault);
 
+        uint256 treasury = 1_000_000e18;
+
         underlying.approve(address(vault), type(uint256).max);
-        vault.deposit(90000e18);
+        vault.deposit(treasury);
 
         vault.trustStrategy(strategy1);
-        vault.depositIntoStrategy(strategy1, 90000e18);
+        vault.depositIntoStrategy(strategy1, treasury);
         vault.pushToWithdrawalStack(strategy1);
 
         vaultConfigurationModule.setDefaultFeePercent(0.2e18);
@@ -212,7 +238,7 @@ contract IntegrationTest is DSTestPlus {
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
         startMeasuringGas("strategy hit");
-        strategy1.hit(uint(800e18), int128(1), new address[](0));
+        strategy1.hit(uint(treasury), int128(1), new address[](0));
         stopMeasuringGas();
         hevm.stopPrank();
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
