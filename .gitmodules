@@ -8,7 +8,7 @@
 [submodule "lib/weiroll"]
 	path = lib/weiroll
 	url = https://github.com/aphrafinance/weiroll
-	branch = main
+	branch = poc/allowlist
 [submodule "lib/weird-erc20"]
 	path = lib/weird-erc20
 	url = https://github.com/d-xo/weird-erc20
