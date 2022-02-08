@@ -65,7 +65,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnderP
         uint uAmount = _swapToUnderlying(vAmount, enterCoin_, path_);
         require(uAmount > uAmount_, "Failed to arb for profit");
     unchecked {
-        require((POOL.balances(0) * 1e3 / POOL.balances(1)) <= 1e3, "peg must be at or below 1");
+        require( POOL.balances(1) * 1e3 / (POOL.balances(0)) <= 1e3, "peg must be at or below 1");
     }
     }
 
