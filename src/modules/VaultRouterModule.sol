@@ -4,7 +4,7 @@ pragma solidity 0.8.10;
 import {WETH} from "solmate/tokens/WETH.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "../FixedPointMathLib.sol";
 
 import {AllowedPermit} from "../interfaces/AllowedPermit.sol";
 

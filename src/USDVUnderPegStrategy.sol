@@ -5,7 +5,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "solmate/auth/Auth.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "./FixedPointMathLib.sol"; //added fdiv and fmul TODO: looking at new rari/next code perhaps we're moving to a new library
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
 import {VaderGateway, IVaderMinter} from "./VaderGateway.sol";
 import {IERC20, IUniswap, IXVader, ICurve} from "./interfaces/StrategyInterfaces.sol";

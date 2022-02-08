@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
+
+import {Auth, Authority} from "solmate/auth/Auth.sol";
+import {MultiRolesAuthority} from "solmate/auth/authorities/MultiRolesAuthority.sol";
+
 struct PegTarget {
     address pool;
     uint32 healthFactor; // std deviation from the mid point
@@ -21,7 +25,7 @@ interface Peg {
     function getUnderlyingAssets() external returns (uint256[] memory);
 }
 
-contract Registry {
+contract Registry is Auth, Authority {
 
     mapping(address => mapping(address => PegTarget)) public targets;
 
@@ -37,9 +41,12 @@ contract Registry {
 
     address futureGovernance;
 
-    constructor(address multiSig) {
-        governance = multiSig;
-    }
+    uint8 ENGINE_ROLE;
+
+    constructor(
+        address GOVERNANCE_,
+        address AUTHORITY_
+    ) Auth(GOVERNANCE_, Authority(AUTHORITY_)){}
 
     function getPrimePeg(address stable) public view returns (address) {
         return primePools[stable];
@@ -50,11 +57,11 @@ contract Registry {
         data = targets[stable][pool];
     }
 
-    function setStableLookup(string calldata coin, address addr) external onlyGovernance {
+    function setStableLookup(string calldata coin, address addr) external requiresAuth {
         stableLookup[coin] = addr;
     }
 
-    function setTarget(address asset,address pool, uint8 poolType, uint32 healthTarget, uint32[2] memory bpsRange) external onlyGovernance {
+    function setTarget(address asset,address pool, uint8 poolType, uint32 healthTarget, uint32[2] memory bpsRange) external requiresAuth {
         targets[asset][pool] = PegTarget(pool, healthTarget, bpsRange);
     }
 
@@ -65,48 +72,41 @@ contract Registry {
         return (pegTarget.healthFactor >= IPool(pegTarget.pool).healthFactor());
     }
 
-    function transferGovernance(address governance_) external onlyGovernance {
-        require(governance_ != address (0), "can't be nobody steering the ship");
-        futureGovernance = governance_;
-    }
-
-    function acceptGovernance() external {
-        require(msg.sender == futureGovernance, "must be futureGovernance to accept");
-        governance = futureGovernance;
-        futureGovernance = address(0);
-    }
-
-    function isValidCommand(address contractAddress, bytes4 selector)
-    external
-    view
-    returns (bool valid) {
-        bytes32 codeHash;
-        assembly {codeHash := extcodehash(contractAddress)}
-
-        valid = (byteCodeAllowList[codeHash] && isActiveCommand[contractAddress][selector]);
-    }
-
     function registerNewCommands(address[] calldata contractsToEnable, bytes4[] calldata selectorsToEnable)
     public
-    onlyGovernance {
+    requiresAuth {
         require(contractsToEnable.length == selectorsToEnable.length, "invalid length mismatch");
         for (uint i = 0; i < contractsToEnable.length; i++) {
             _registerNewContract(contractsToEnable[i], selectorsToEnable[i]);
         }
     }
 
-    modifier onlyGovernance() {
-        require(address(msg.sender) == governance);
-        _;
-    }
-
-    function _registerNewContract(address externalContract, bytes4 selector) internal onlyGovernance {
+    function _registerNewContract(address externalContract, bytes4 selector) internal {
         bytes32 codeHash;
         assembly {codeHash := extcodehash(externalContract)}
 
         require(!isActiveCommand[externalContract][selector], "Command already added");
 
         byteCodeAllowList[codeHash] = true; //set into its own function maybe for 2 step activation, code and then contract/selector
-        isActiveCommand[externalContract][selector] = true;
+
+        MultiRolesAuthority multiRolesAuthority = MultiRolesAuthority(address(authority));
+
+        multiRolesAuthority.setRoleCapability(ENGINE_ROLE, selector, true);
+
+        multiRolesAuthority.setTargetCustomAuthority(externalContract, Authority(address(this)));
+
+    }
+
+    function canCall(
+        address user,
+        address target,
+        bytes4 functionSig
+    ) external view returns (bool) {
+
+        bytes32 codeHash;
+        assembly {codeHash := extcodehash(contractAddress)}
+
+        return (byteCodeAllowList[codeHash] && isActiveCommand[contractAddress][selector]);
+
     }
 }

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
-
+import {Auth, Authority} from "solmate/auth/Auth.sol";
 import "../lib/weiroll/contracts/VM.sol";
 import "./Registry.sol";
 
-contract Engine {
-
+contract Engine is Auth {
 
     error ExecutionFailed(bytes failedState);
     error InvalidStateUpdate();
@@ -23,8 +22,9 @@ contract Engine {
     constructor(
         VM _vm,
         address _guardian,
-        address _registry
-        ) {
+        address _registry,
+        address _authority
+        ) Auth(_guardian, Authority(_authority)) {
         vm = _vm;
         guardian = _guardian;
         registry = Registry(_registry);

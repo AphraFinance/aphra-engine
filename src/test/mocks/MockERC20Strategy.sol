@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "../../FixedPointMathLib.sol";
 
 import {ERC20Strategy} from "../../interfaces/Strategy.sol";
 
