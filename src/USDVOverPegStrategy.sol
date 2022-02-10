@@ -127,7 +127,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         XVADER.enter(vAmount);
     }
 
-    function _computeStakedSharesForUnderlying(uint vAmount) internal returns(uint256) {
+    function _computeStakedSharesForUnderlying(uint vAmount) internal view returns(uint256) {
         return (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
     }
 

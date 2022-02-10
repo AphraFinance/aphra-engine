@@ -7,7 +7,8 @@ libs = ['lib']
 remappings = [
     'ds-test/=lib/ds-test/src/',
     'solmate/=lib/solmate/src/',
-    'weiroll/=lib/weiroll/src/'
+    'solidly/=lib/solidly/contracts/',
+    'weiroll/=lib/weiroll/src/',
 ]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

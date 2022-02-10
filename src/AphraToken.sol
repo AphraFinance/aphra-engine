@@ -5,12 +5,15 @@ import {Auth, Authority} from "solmate/auth/Auth.sol";
 
 contract AphraToken is Auth, ERC20("Aphra Finance DAO", "APHRA", 18) {
 
-    address public treasury;
-
     constructor(
-        address TREASURY_,
+        address GOVERNANCE_,
         address AUTHORITY_
-    ) Auth(TREASURY_, Authority(AUTHORITY_)) {
+    ) Auth(GOVERNANCE_, Authority(AUTHORITY_)) {
+        _mint(msg.sender, 0);
+    }
 
+    function mint(address account, uint amount) requiresAuth external returns (bool) {
+        _mint(account, amount);
+        return true;
     }
 }

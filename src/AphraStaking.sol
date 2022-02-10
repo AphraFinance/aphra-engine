@@ -12,6 +12,7 @@ contract AphraStaking is Auth {
     error BadWithdraw();
     error NoDevLPWithdraw();
     error NoEarlyDevWithdraw();
+
     struct UserInfo {
         uint256 amount;
         uint256 rewardDebt;
@@ -37,7 +38,7 @@ contract AphraStaking is Auth {
 
     PoolInfo[] public poolInfo;
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
-    mapping (address => uint256) public activeLock;
+    mapping (address => uint256) public activeBadge;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -65,17 +66,17 @@ contract AphraStaking is Auth {
         return poolInfo.length;
     }
 
-    // Add a new lp to the pool. Can only be called by the owner.
-    // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
+    // Add a new asset to the pool. Can only be called by the owner.
+    // XXX DO NOT add the same asset token more than once. Rewards will be messed up if you do.
     function add(uint256 _allocPoint, ERC20 _depositAsset) public requiresAuth {
         massUpdatePools();
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint + _allocPoint;
         poolInfo.push(PoolInfo({
-        depositAsset: _depositAsset,
-        allocPoint: _allocPoint,
-        lastRewardBlock: lastRewardBlock,
-        accAphraPerShare: 0
+            depositAsset: _depositAsset,
+            allocPoint: _allocPoint,
+            lastRewardBlock: lastRewardBlock,
+            accAphraPerShare: 0
         }));
     }
 
@@ -140,7 +141,7 @@ contract AphraStaking is Auth {
         if (user.amount > 0) {
             uint256 pending = ((user.amount * pool.accAphraPerShare) / OFFSET) - user.rewardDebt;
             if(pending > 0) {
-                claimAndLockVe(msg.sender, pending);
+                _claimAndLockVe(msg.sender, pending);
             }
         }
         if(_amount > 0) {
@@ -151,7 +152,7 @@ contract AphraStaking is Auth {
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    // Withdraw LP tokens from impossible staking contract.
+    // Withdraw LP tokens from aphra staking contract.
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -159,7 +160,7 @@ contract AphraStaking is Auth {
         updatePool(_pid);
         uint256 pending = ((user.amount * pool.accAphraPerShare) / OFFSET) - user.rewardDebt;
         if(pending > 0) {
-            claimAndLockVe(msg.sender, pending);
+            _claimAndLockVe(msg.sender, pending);
         }
         if(_amount > 0) {
             user.amount = user.amount - _amount;
@@ -180,7 +181,7 @@ contract AphraStaking is Auth {
     }
 
     // Safe if transfer function, just in case if rounding error causes pool to not have enough APHRAs.
-    function claimAndLockVe(address _to, uint256 _amount) internal {
+    function _claimAndLockVe(address _to, uint256 _amount) internal {
 
         uint256 depositAmount = _amount;
         //
@@ -189,10 +190,10 @@ contract AphraStaking is Auth {
         }
 
         //check to see if a the receiving user has an lock.
-        if (activeLock[_to] != uint(0) && voteEscrow.ownerOf(activeLock[_to]) == _to) {
-            voteEscrow.deposit_for(activeLock[_to], depositAmount);
+        if (activeBadge[_to] != uint(0) && voteEscrow.ownerOf(activeBadge[_to]) == _to) {
+            voteEscrow.deposit_for(activeBadge[_to], depositAmount);
         } else {
-            activeLock[_to] = voteEscrow.create_lock_for(depositAmount, LOCK_DURATION, _to);
+            activeBadge[_to] = voteEscrow.create_lock_for(depositAmount, LOCK_DURATION, _to);
         }
     }
 

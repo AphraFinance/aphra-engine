@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.11;
+pragma solidity ^0.8.10;
 
 import {Auth, Authority} from "solmate/auth/Auth.sol";
 
@@ -380,6 +380,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     string constant public version = "1.0.0";
     uint8 constant public decimals = 18;
 
+    string internal badgeDescription;
     /// @dev Current count of token
     uint internal tokenId;
 
@@ -449,12 +450,17 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         emit Transfer(address(this), address(0), tokenId);
     }
 
+    function setBadgeDescription(string memory _newDescription) requiresAuth external {
+        badgeDescription = _newDescription;
+    }
+
     function unlock() public requiresAuth {
+        require(unlocked == false, "unlock already happened");
         unlocked = true;
     }
 
     modifier isUnlocked() {
-        require(unlocked, "must be unlocked to do that");
+        require(unlocked, "contract must be unlocked to do that");
         _;
     }
 
@@ -556,7 +562,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     /// @param _tokenId uint ID Of the token to be removed
     function _removeTokenFromOwnerList(address _from, uint _tokenId) internal {
         // Delete
-        uint current_count = _balance(_from)-1;
+        uint current_count = _balance(_from) - 1;
         uint current_index = tokenToOwnerIndex[_tokenId];
 
         if (current_count == current_index) {
@@ -818,7 +824,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
             }
         }
 
-        Point memory last_point = Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number});
+        Point memory last_point = Point({bias : 0, slope : 0, ts : block.timestamp, blk : block.number});
         if (_epoch > 0) {
             last_point = point_history[_epoch];
         }
@@ -827,7 +833,8 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         // (approximately, for *At methods) and save them
         // as we cannot figure that out exactly from inside the contract
         Point memory initial_last_point = last_point;
-        uint block_slope = 0; // dblock/dt
+        uint block_slope = 0;
+        // dblock/dt
         if (block.timestamp > last_point.ts) {
             block_slope = (MULTIPLIER * (block.number - last_point.blk)) / (block.timestamp - last_point.ts);
         }
@@ -897,14 +904,16 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
                 // old_dslope was <something> - u_old.slope, so we cancel that
                 old_dslope += u_old.slope;
                 if (new_locked.end == old_locked.end) {
-                    old_dslope -= u_new.slope; // It was a new deposit, not extension
+                    old_dslope -= u_new.slope;
+                    // It was a new deposit, not extension
                 }
                 slope_changes[old_locked.end] = old_dslope;
             }
 
             if (new_locked.end > block.timestamp) {
                 if (new_locked.end > old_locked.end) {
-                    new_dslope -= u_new.slope; // old slope disappeared at this point
+                    new_dslope -= u_new.slope;
+                    // old slope disappeared at this point
                     slope_changes[new_locked.end] = new_dslope;
                 }
                 // else: we recorded it already in old_dslope
@@ -977,12 +986,12 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
     function attach(uint _tokenId) external {
         require(msg.sender == voter);
-        attachments[_tokenId] = attachments[_tokenId]+1;
+        attachments[_tokenId] = attachments[_tokenId] + 1;
     }
 
     function detach(uint _tokenId) external {
         require(msg.sender == voter);
-        attachments[_tokenId] = attachments[_tokenId]-1;
+        attachments[_tokenId] = attachments[_tokenId] - 1;
     }
 
     function merge(uint _from, uint _to) external {
@@ -1019,7 +1028,8 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     function deposit_for(uint _tokenId, uint _value) external nonreentrant {
         LockedBalance memory _locked = locked[_tokenId];
 
-        require(_value > 0); // dev: need non-zero value
+        require(_value > 0);
+        // dev: need non-zero value
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
         _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
@@ -1030,9 +1040,11 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     /// @param _lock_duration Number of seconds to lock tokens for (rounded down to nearest week)
     /// @param _to Address to deposit
     function _create_lock(uint _value, uint _lock_duration, address _to) internal returns (uint) {
-        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
+        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK;
+        // Locktime is rounded down to weeks
 
-        require(_value > 0); // dev: need non-zero value
+        require(_value > 0);
+        // dev: need non-zero value
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
         require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 2 years max');
 
@@ -1066,7 +1078,8 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
         LockedBalance memory _locked = locked[_tokenId];
 
-        assert(_value > 0); // dev: need non-zero value
+        assert(_value > 0);
+        // dev: need non-zero value
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
 
@@ -1079,7 +1092,8 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
-        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
+        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK;
+        // Locktime is rounded down to weeks
 
         require(_locked.end > block.timestamp, 'Lock expired');
         require(_locked.amount > 0, 'Nothing is locked');
@@ -1099,14 +1113,14 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         require(block.timestamp >= _locked.end, "The lock didn't expire");
         uint value = uint(int256(_locked.amount));
 
-        locked[_tokenId] = LockedBalance(0,0);
+        locked[_tokenId] = LockedBalance(0, 0);
         uint supply_before = supply;
         supply = supply_before - value;
 
         // old_locked can have either expired <= timestamp or zero end
         // _locked has only 0 end
         // Both can have >= 0 amount
-        _checkpoint(_tokenId, _locked, LockedBalance(0,0));
+        _checkpoint(_tokenId, _locked, LockedBalance(0, 0));
 
         assert(IERC20(token).transfer(msg.sender, value));
 
@@ -1173,7 +1187,8 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
             _tokenId,
             _balanceOfNFT(_tokenId, block.timestamp),
             _locked.end,
-            uint(int256(_locked.amount))
+            uint(int256(_locked.amount)),
+            badgeDescription
         );
     }
 
@@ -1310,14 +1325,14 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         return _supply_at(point, point.ts + dt);
     }
 
-    function _tokenURI(uint _tokenId, uint _balanceOf, uint _locked_end, uint _value) internal pure returns (string memory output) {
+    function _tokenURI(uint _tokenId, uint _balanceOf, uint _locked_end, uint _value, string memory description) internal pure returns (string memory output) {
         output = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
         output = string(abi.encodePacked(output, "token ", toString(_tokenId), '</text><text x="10" y="40" class="base">'));
         output = string(abi.encodePacked(output, "balanceOf ", toString(_balanceOf), '</text><text x="10" y="60" class="base">'));
         output = string(abi.encodePacked(output, "locked_end ", toString(_locked_end), '</text><text x="10" y="80" class="base">'));
         output = string(abi.encodePacked(output, "value ", toString(_value), '</text></svg>'));
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "lock #', toString(_tokenId), '", "description": "Solidly locks, can be used to boost gauge yields, vote on token emission, and receive bribes", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Badge #', toString(_tokenId), '", "description": "', description, '", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
     }
 
