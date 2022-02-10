@@ -80,7 +80,7 @@ interface Vm {
 }
 
 
-contract IntegrationTest is DSTestPlus {
+contract DeployTest is DSTestPlus {
     VaultFactory vaultFactory;
 
     MultiRolesAuthority multiRolesAuthority;
@@ -142,6 +142,28 @@ contract IntegrationTest is DSTestPlus {
             UNIROUTER,
             WETH
         );
+
+//
+//        aphra = new AphraToken(
+//            GOVERNANCE,
+//            address(multiRolesAuthority)
+//        );
+//
+//        voteEscrow = new veAPHRA(
+//            address(aphra),
+//            GOVERNANCE,
+//            address(multiRolesAuthority)
+//        );
+//
+//        staking = new AphraStaking(
+//            GOVERNANCE,
+//            address(multiRolesAuthority),
+//            address(voteEscrow),
+//            address(aphra),
+//            uint256(5e18),
+//            uint256(1777777777),
+//            uint256(1777777777)
+//        );
 
         //acquire vader for the test harness
         //setup partner mint storage

@@ -5,12 +5,13 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "solmate/auth/Auth.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
-import {FixedPointMathLib} from "./FixedPointMathLib.sol"; //added fdiv and fmul TODO: looking at new rari/next code perhaps we're moving to a new library
-import {ERC20Strategy} from "./interfaces/Strategy.sol";
-import {VaderGateway, IVaderMinter} from "./VaderGateway.sol";
-import {IERC20, IUniswap, IXVader, ICurve} from "./interfaces/StrategyInterfaces.sol";
+import {FixedPointMathLib} from "../FixedPointMathLib.sol"; //added fdiv and fmul TODO: looking at new rari/next code perhaps we're moving to a new library
+import {ERC20Strategy} from "../interfaces/Strategy.sol";
+import {VaderGateway, IVaderMinter} from "../VaderGateway.sol";
+import {IERC20, IUniswap, IXVader, ICurve} from "../interfaces/StrategyInterfaces.sol";
 
-contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPegStrategy", 18), ERC20Strategy {
+contract USDVOverPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnderPegStrategy", 18), ERC20Strategy {
+
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
@@ -59,16 +60,13 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     ///////////////////////////////////////////////////////////// */
 
 
-    function hit(uint256 vAmount_, int128 exitCoin_, address[] memory pathToVader_) external requiresAuth () {
-        _unstakeUnderlying(vAmount_);
-        uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)), uint(1));
-        uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
-        _stakeUnderlying(vAmount);
-        require(vAmount > vAmount_, "Failed to arb for profit");
+    function hit(uint256 uAmount_, int128 enterCoin_, address[] memory path_) external requiresAuth () {
+        uint vAmount = VADERGATEWAY.partnerBurn(uAmount_, uint(1));
+        uint uAmount = _swapToUnderlying(vAmount, enterCoin_, path_);
+        require(uAmount > uAmount_, "Failed to arb for profit");
     unchecked {
-        require( POOL.balances(1) * 1e3 / (POOL.balances(0)) >= 1e3, "peg must be at or above 1");
+        require( POOL.balances(1) * 1e3 / (POOL.balances(0)) <= 1e3, "peg must be at or below 1");
     }
-
     }
 
     function isCEther() external pure override returns (bool) {
@@ -127,7 +125,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         XVADER.enter(vAmount);
     }
 
-    function _computeStakedSharesForUnderlying(uint vAmount) internal view returns(uint256) {
+    function _computeStakedSharesForUnderlying(uint vAmount) internal returns(uint256) {
         return (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
     }
 
@@ -136,42 +134,53 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         XVADER.leave(shares);
     }
 
-    function _swapUSDVToVader(uint uAmount_, int128 exitCoin_, address[] memory path_) internal returns (uint vAmount) {
+    function _swapToUnderlying(uint vAmountIn_, int128 enterCoin_, address[] memory path_) internal returns (uint oAmount) {
+
+
+        //we have vader, we want to get usdv, so we need dai/usdc/usdt first
+
         //get best exit address
         //get mins for swap
-        address exitCoinAddr = address(DAI);
-        if (exitCoin_ == int128(2)) {
-            exitCoinAddr = address(USDC);
-        } else if (exitCoin_ == int128(3)) {
-            exitCoinAddr = address(USDT);
+
+        address enterCoinAddress = address(DAI);
+        if (enterCoin_ == int128(2)) {
+            enterCoinAddress = address(USDC);
+        } else if (enterCoin_ == int128(3)) {
+            enterCoinAddress = address(USDT);
         }
-        POOL.exchange_underlying(0, exitCoin_, uAmount_, uint(1));
+
 
         address[] memory path;
         if(path_.length == 0) {
             path = new address[](3);
-            path[0] = exitCoinAddr;
+            path[0] = address(UNDERLYING);
             path[1] = address(WETH);
-            path[2] = address(UNDERLYING); //vader eth pool has the best depth for vader
+            path[2] = enterCoinAddress; //vader eth pool has the best depth for vader
         } else {
             path = path_;
         }
 
-        uint256 amountIn = ERC20(exitCoinAddr).balanceOf(address(this));
-        uint256[] memory amounts = UNISWAP.getAmountsOut(amountIn, path);
-        vAmount = amounts[amounts.length - 1];
+        uint256[] memory amounts = UNISWAP.getAmountsOut(vAmountIn_, path);
+        uint256 swapOut = amounts[amounts.length - 1];
+
         UNISWAP.swapExactTokensForTokens(
-            amountIn,
-            vAmount,
+            vAmountIn_,
+            swapOut,
             path,
             address(this),
             block.timestamp
         );
+        uint256 usdvBalanceBefore;
+        unchecked {
+            usdvBalanceBefore = USDV.balanceOf(address(this));
+        }
 
-    }
+        POOL.exchange_underlying(enterCoin_, int128(0), swapOut, uint(1));
 
-    function _computeStakedUnderlying() internal view returns (uint256) {
-        return (XVADER.balanceOf(address(this)) * UNDERLYING.balanceOf(address(XVADER))) / XVADER.totalSupply();
+        unchecked {
+            oAmount = USDV.balanceOf(address(this)) - usdvBalanceBefore;
+        }
+
     }
 
     function _exchangeRate() internal view returns (uint256) {
@@ -179,9 +188,8 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
 
         if (cTokenSupply == 0) return BASE_UNIT;
         uint underlyingBalance;
-        uint stakedBalance = _computeStakedUnderlying();
         unchecked {
-            underlyingBalance = UNDERLYING.balanceOf(address(this)) + stakedBalance;
+            underlyingBalance = UNDERLYING.balanceOf(address(this));
         }
         return underlyingBalance.fdiv(cTokenSupply, BASE_UNIT);
     }
