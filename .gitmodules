@@ -12,3 +12,6 @@
 [submodule "lib/weird-erc20"]
 	path = lib/weird-erc20
 	url = https://github.com/d-xo/weird-erc20
+[submodule "lib/solidly.git"]
+	path = lib/solidly.git
+	url = https://github.com/AphraFinance/solidly.git
