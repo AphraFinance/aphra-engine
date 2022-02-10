@@ -104,9 +104,9 @@ contract Registry is Auth, Authority {
     ) external view returns (bool) {
 
         bytes32 codeHash;
-        assembly {codeHash := extcodehash(contractAddress)}
+        assembly {codeHash := extcodehash(target)}
 
-        return (byteCodeAllowList[codeHash] && isActiveCommand[contractAddress][selector]);
+        return (byteCodeAllowList[codeHash] && isActiveCommand[target][functionSig]);
 
     }
 }

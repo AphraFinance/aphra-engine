@@ -426,13 +426,15 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     }
 
     /// @notice Contract constructor
-    /// @param token_addr `ERC20APHRA` token address
+    /// @param TOKEN_ADDR_ `ERC20APHRA` token address
+    /// @param GOVERNANCE_ `ERC20APHRA` token address
+    /// @param AUTHORITY_ `ERC20APHRA` token address
     constructor(
-        address TOKEN_ADDR,
+        address TOKEN_ADDR_,
         address GOVERNANCE_,
         address AUTHORITY_
     ) Auth(GOVERNANCE_, Authority(AUTHORITY_)) {
-        token = TOKEN_ADDR;
+        token = TOKEN_ADDR_;
         voter = msg.sender;
         point_history[0].blk = block.number;
         point_history[0].ts = block.timestamp;
@@ -451,7 +453,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         unlocked = true;
     }
 
-    modifier checkUnlocked() {
+    modifier isUnlocked() {
         require(unlocked, "must be unlocked to do that");
         _;
     }
@@ -657,7 +659,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         address _from,
         address _to,
         uint _tokenId
-    ) external {
+    ) isUnlocked external {
         _transferFrom(_from, _to, _tokenId, msg.sender);
     }
 
@@ -689,7 +691,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         address _to,
         uint _tokenId,
         bytes memory _data
-    ) public {
+    ) isUnlocked public {
         _transferFrom(_from, _to, _tokenId, msg.sender);
 
         if (_isContract(_to)) {
@@ -723,7 +725,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         address _from,
         address _to,
         uint _tokenId
-    ) external {
+    ) isUnlocked external {
         safeTransferFrom(_from, _to, _tokenId, '');
     }
 
@@ -733,7 +735,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     ///      Throws if `_approved` is the current owner. (NOTE: This is not written the EIP)
     /// @param _approved Address to be approved for the given NFT ID.
     /// @param _tokenId ID of the token to be approved.
-    function approve(address _approved, uint _tokenId) public {
+    function approve(address _approved, uint _tokenId) isUnlocked public {
         address owner = idToOwner[_tokenId];
         // Throws if `_tokenId` is not a valid NFT
         require(owner != address(0));
@@ -754,7 +756,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     /// @notice This works even if sender doesn't own any tokens at the time.
     /// @param _operator Address to add to the set of authorized operators.
     /// @param _approved True if the operators is approved, false to revoke approval.
-    function setApprovalForAll(address _operator, bool _approved) external {
+    function setApprovalForAll(address _operator, bool _approved) isUnlocked external {
         // Throws if `_operator` is the `msg.sender`
         assert(_operator != msg.sender);
         ownerToOperators[msg.sender][_operator] = _approved;
@@ -1089,7 +1091,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
     /// @notice Withdraw all tokens for `_tokenId`
     /// @dev Only possible if the lock has expired
-    function withdraw(uint _tokenId) external nonreentrant {
+    function withdraw(uint _tokenId) isUnlocked external nonreentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
