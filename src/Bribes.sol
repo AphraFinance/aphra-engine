@@ -22,7 +22,7 @@ interface ve {
     function ownerOf(uint) external view returns (address);
 }
 
-interface IAphraVoter {
+interface IVoter {
     function _ve() external view returns (address);
 }
 
@@ -88,7 +88,7 @@ contract Bribe {
 
     constructor(address _factory) {
         factory = _factory;
-        _ve = IAphraVoter(_factory)._ve();
+        _ve = IVoter(_factory)._ve();
     }
 
     // simple re-entrancy check

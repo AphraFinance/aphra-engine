@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.11;
+pragma solidity ^0.8.11;
 
 library Math {
     function min(uint a, uint b) internal pure returns (uint) {
@@ -55,7 +55,6 @@ interface IMinter {
 contract Voter {
 
     address public immutable _ve; // the ve token that governs these contracts
-    address public immutable factory; // the BaseV1Factory
     address internal immutable base;
     address public immutable gaugefactory;
     address public immutable bribefactory;
@@ -86,9 +85,8 @@ contract Voter {
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
     event Whitelisted(address indexed whitelister, address indexed token);
 
-    constructor(address __ve, address _factory, address  _gauges, address _bribes) {
+    constructor(address __ve, address  _gauges, address _bribes) {
         _ve = __ve;
-        factory = _factory;
         base = ve(__ve).token();
         gaugefactory = _gauges;
         bribefactory = _bribes;

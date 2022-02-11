@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 import {Auth, Authority} from "solmate/auth/Auth.sol";
-import {MultiRolesAuthority} from "solmate/auth/authorities/MultiRolesAuthority.sol";
+import {MultiRolesAuthority} from "./MultiRolesAuthority.sol";
 
 struct PegTarget {
     address pool;

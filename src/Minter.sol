@@ -46,7 +46,7 @@ contract Minter {
     ve_dist public immutable _ve_dist;
     uint public weekly = 20000000e18;
     uint public active_period;
-    uint internal constant lock = 86400 * 7 * 52 * 4; //TODO setup constants for aphranomics
+    uint internal constant lock = 86400 * 7 * 52 * 2; //TODO setup constants for aphranomics
 
     address internal initializer;
 
@@ -76,8 +76,8 @@ contract Minter {
         _token.mint(address(this), max);
         _token.approve(address(_ve), type(uint).max);
         for (uint i = 0; i < claimants.length; i++) {
-            uint split = amounts[i] / 2;
-            _ve.create_lock_for(split, lock, claimants[i]);
+//            uint split = amounts[i] / 2;
+            _ve.create_lock_for(amounts[i], lock, claimants[i]);
             //vesting.lock(split, lock, claimants[i]);
 
         }

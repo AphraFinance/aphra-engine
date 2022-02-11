@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 import {Auth, Authority} from "solmate/auth/Auth.sol";
 import "../lib/weiroll/contracts/VM.sol";
 import "./Registry.sol";

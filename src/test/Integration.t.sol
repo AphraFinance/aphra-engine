@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 import {Authority} from "solmate/auth/Auth.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 //import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
-import {MultiRolesAuthority} from "solmate/auth/authorities/MultiRolesAuthority.sol";
+import {MultiRolesAuthority} from "../MultiRolesAuthority.sol";
 
 import {IVaderMinter, IUniswap, USDVOverPegStrategy} from "../strategies/USDVOverPegStrategy.sol";
 import {VaderGateway} from "../VaderGateway.sol";

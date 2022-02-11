@@ -22,6 +22,8 @@ interface ve {
     function token() external view returns (address);
     function balanceOfNFT(uint) external view returns (uint);
     function isApprovedOrOwner(address, uint) external view returns (bool);
+    function isUnlocked() external view returns (bool);
+    function create_lock_for(uint _value, uint _lock_duration, address _to) external returns (uint);
     function ownerOf(uint) external view returns (address);
     function transferFrom(address, address, uint) external;
 }
@@ -46,6 +48,7 @@ contract Gauge {
     address public immutable _ve; // the ve token used for gauges
     address public immutable bribe;
     address public immutable voter;
+
 
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
@@ -101,13 +104,9 @@ contract Gauge {
     /// @notice The number of checkpoints for each token
     mapping (address => uint) public rewardPerTokenNumCheckpoints;
 
-    uint public fees0;
-    uint public fees1;
-
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
     event NotifyReward(address indexed from, address indexed reward, uint amount);
-    event ClaimFees(address indexed from, uint claimed0, uint claimed1);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
     constructor(address _stake, address _bribe, address  __ve, address _voter) {
@@ -285,7 +284,13 @@ contract Gauge {
             uint _reward = earned(tokens[i], account);
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
-            if (_reward > 0) _safeTransfer(tokens[i], account, _reward);
+            if (_reward > 0) {
+              if (ve(_ve).isUnlocked()) {
+                  _safeTransfer(tokens[i], account, _reward); //setup gauges to send you veAPHRA while token is unlocked
+              } else {
+
+              }
+            }
 
             emit ClaimRewards(msg.sender, tokens[i], _reward);
         }
@@ -314,10 +319,11 @@ contract Gauge {
         uint _derived = _balance * 40 / 100;
         uint _adjusted = 0;
         uint _supply = erc20(_ve).totalSupply();
-        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = ve(_ve).balanceOfNFT(_tokenId);
-            _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
-        }
+//        //TODO: consider scrapping the boost
+//        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0) {
+//            _adjusted = ve(_ve).balanceOfNFT(_tokenId);
+//            _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
+//        }
         return Math.min((_derived + _adjusted), _balance);
     }
 
@@ -446,7 +452,8 @@ contract Gauge {
             }
             require(tokenIds[msg.sender] == tokenId);
         } else {
-            tokenId = tokenIds[msg.sender];
+            //initialize a lock to recieve rewards into.
+            tokenId = ve(_ve).create_lock_for(0, DURATION, msg.sender);
         }
 
         uint _derivedBalance = derivedBalances[msg.sender];
@@ -533,6 +540,23 @@ contract Gauge {
 
         emit NotifyReward(msg.sender, token, amount);
     }
+
+    // Safe if transfer function, just in case if rounding error causes pool to not have enough APHRAs.
+//    function _claimAndLockVe(address _to, uint256 _amount) internal {
+//
+//        uint256 depositAmount = _amount;
+//        //
+//        if (_amount > aphraToken.balanceOf(address(this))) {
+//            depositAmount = aphraToken.balanceOf(address(this));
+//        }
+//
+//        //check to see if a the receiving user has an lock.
+//        if (activeBadge[_to] != uint(0) && _ve.ownerOf(activeBadge[_to]) == _to) {
+//            _ve.deposit_for(activeBadge[_to], depositAmount);
+//        } else {
+//            activeBadge[_to] = _ve.create_lock_for(depositAmount, DURATION, _to);
+//        }
+//    }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0);

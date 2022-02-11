@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity 0.8.10;
+pragma solidity ^0.8.11;
 
 import {Auth} from "solmate/auth/Auth.sol";
 import {WETH} from "solmate/tokens/WETH.sol";
