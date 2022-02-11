@@ -994,7 +994,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         attachments[_tokenId] = attachments[_tokenId] - 1;
     }
 
-    function merge(uint _from, uint _to) external {
+    function merge(uint _from, uint _to) isUnlocked external {
         require(attachments[_from] == 0 && !voted[_from], "attached");
         require(_from != _to);
         require(_isApprovedOrOwner(msg.sender, _from));
