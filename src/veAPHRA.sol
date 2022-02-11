@@ -428,8 +428,8 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
     /// @notice Contract constructor
     /// @param TOKEN_ADDR_ `ERC20APHRA` token address
-    /// @param GOVERNANCE_ `ERC20APHRA` token address
-    /// @param AUTHORITY_ `ERC20APHRA` token address
+    /// @param GOVERNANCE_ `GOVERNANCE`  address
+    /// @param AUTHORITY_ `Authority`  address
     constructor(
         address TOKEN_ADDR_,
         address GOVERNANCE_,

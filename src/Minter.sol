@@ -5,6 +5,12 @@ library Math {
     function max(uint a, uint b) internal pure returns (uint) {
         return a >= b ? a : b;
     }
+    /**
+     * @dev Returns the smallest of two numbers.
+     */
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
+    }
 }
 
 interface ve {
@@ -33,13 +39,14 @@ interface ve_dist {
 
 // codifies the minting rules as per ve(3,3), abstracted from the token to support any token that allows minting
 
+//add safetransferlib
 contract Minter {
 
     uint internal constant week = 86400 * 7; // allows minting once per week (reset every Thursday 00:00 UTC)
     uint internal constant emission = 98;
     uint internal constant tail_emission = 2;
     uint internal constant target_base = 100; // 2% per week target emission
-    uint internal constant tail_base = 1000; // 0.2% per week target emission
+    uint internal constant tail_base = 1000; // 0.2% per week target emission //TODO: set per week emissions
     underlying public immutable _token;
     voter public immutable _voter;
     ve public immutable _ve;
@@ -65,9 +72,12 @@ contract Minter {
         active_period = (block.timestamp + (2*week)) / week * week;
     }
 
+    //initialize with 3% airdrop and 6% team
     function initialize(
-        address[] memory claimants,
-        uint[] memory amounts,
+        address[] memory initVeLocks,
+        uint[] memory initVeAmounts,
+        address[] memory initToken,
+        uint[] memory initTokenAmounts,
         uint max // sum amounts / max = % ownership of top protocols, so if initial 20m is distributed, and target is 25% protocol ownership, then max - 4 x 20m = 80m
     ) external {
         //setup initial mint params here, lock team as ve nft's
@@ -75,12 +85,14 @@ contract Minter {
         require(initializer == msg.sender);
         _token.mint(address(this), max);
         _token.approve(address(_ve), type(uint).max);
-        for (uint i = 0; i < claimants.length; i++) {
-//            uint split = amounts[i] / 2;
-            _ve.create_lock_for(amounts[i], lock, claimants[i]);
-            //vesting.lock(split, lock, claimants[i]);
-
+        for (uint i = 0; i < initVeLocks.length; i++) {
+            _ve.create_lock_for(initVeAmounts[i], lock, initVeLocks[i]);
         }
+        for (uint i = 0; i < initToken.length; i++) {
+            _token.transfer(initToken[i], initTokenAmounts[i]);
+        }
+
+        //set airdrop
         initializer = address(0);
         active_period = (block.timestamp + week) / week * week;
     }

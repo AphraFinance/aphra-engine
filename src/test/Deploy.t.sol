@@ -3,7 +3,6 @@ pragma solidity ^0.8.11;
 
 import {Authority} from "solmate/auth/Auth.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
-//import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {MultiRolesAuthority} from "../MultiRolesAuthority.sol";
 
@@ -27,63 +26,7 @@ import {Minter} from "../Minter.sol";
 import {Voter} from "../Voter.sol";
 import {AphraToken} from "../AphraToken.sol";
 import "./console.sol";
-
-interface Vm {
-    // Set block.timestamp (newTimestamp)
-    function warp(uint256) external;
-    // Set block.height (newHeight)
-    function roll(uint256) external;
-    // Set block.basefee (newBasefee)
-    function fee(uint256) external;
-    // Loads a storage slot from an address (who, slot)
-    function load(address, bytes32) external returns (bytes32);
-    // Stores a value to an address' storage slot, (who, slot, value)
-    function store(address, bytes32, bytes32) external;
-    // Signs data, (privateKey, digest) => (v, r, s)
-    function sign(uint256, bytes32) external returns (uint8, bytes32, bytes32);
-    // Gets address for a given private key, (privateKey) => (address)
-    function addr(uint256) external returns (address);
-    // Performs a foreign function call via terminal, (stringInputs) => (result)
-    function ffi(string[] calldata) external returns (bytes memory);
-    // Sets the *next* call's msg.sender to be the input address
-    function prank(address) external;
-    // Sets all subsequent calls' msg.sender to be the input address until `stopPrank` is called
-    function startPrank(address) external;
-    // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
-    function prank(address, address) external;
-    // Sets all subsequent calls' msg.sender to be the input address until `stopPrank` is called, and the tx.origin to be the second input
-    function startPrank(address, address) external;
-    // Resets subsequent calls' msg.sender to be `address(this)`
-    function stopPrank() external;
-    // Sets an address' balance, (who, newBalance)
-    function deal(address, uint256) external;
-    // Sets an address' code, (who, newCode)
-    function etch(address, bytes calldata) external;
-    // Expects an error on next call
-    function expectRevert(bytes calldata) external;
-
-    function expectRevert(bytes4) external;
-    // Record all storage reads and writes
-    function record() external;
-    // Gets all accessed reads and write slot from a recording session, for a given address
-    function accesses(address) external returns (bytes32[] memory reads, bytes32[] memory writes);
-    // Prepare an expected log with (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
-    // Call this function, then emit an event, then call a function. Internally after the call, we check if
-    // logs were emitted in the expected order with the expected topics and data (as specified by the booleans)
-    function expectEmit(bool, bool, bool, bool) external;
-    // Mocks a call to an address, returning specified data.
-    // Calldata can either be strict or a partial match, e.g. if you only
-    // pass a Solidity selector to the expected calldata, then the entire Solidity
-    // function will be mocked.
-    function mockCall(address, bytes calldata, bytes calldata) external;
-    // Clears all mocked calls
-    function clearMockedCalls() external;
-    // Expect a call to an address with the specified calldata.
-    // Calldata can either be strict or a partial match
-    function expectCall(address, bytes calldata) external;
-
-    function getCode(string calldata) external returns (bytes memory);
-}
+import "../AirdropClaim.sol";
 
 
 contract DeployTest is DSTestPlus {
@@ -118,6 +61,7 @@ contract DeployTest is DSTestPlus {
     ve_dist Ve_dist;
     Voter voter;
     Minter minter;
+    AirdropClaim airdropClaim;
     /*
 
 
@@ -156,8 +100,10 @@ contract DeployTest is DSTestPlus {
         voter = new Voter(address(Ve), address(gauges), address(bribes));
         minter = new Minter(address(voter), address(Ve), address(Ve_dist));
 
-        vaultFactory = new VaultFactory(address(this), multiRolesAuthority);
+        //create airdrop
+        airdropClaim = new AirdropClaim(0xd0aa6a4e5b4e13462921d7518eebdb7b297a7877d6cfe078b0c318827392fb55, address(Ve));
 
+        vaultFactory = new VaultFactory(address(this), multiRolesAuthority);
 
         vaderGateway = new VaderGateway(
             address(VADER_MINTER),
@@ -177,7 +123,6 @@ contract DeployTest is DSTestPlus {
             UNIROUTER,
             WETH
         );
-
 
         setupRolesCapabilities();
 
@@ -255,15 +200,44 @@ contract DeployTest is DSTestPlus {
         //address[] memory claimants,
         //        uint[] memory amounts,
         //        uint max
-        address[] memory initVe = new address[](2);
-        initVe[0] = GOVERNANCE;
-        initVe[1] = address(this);
+        //andrew 2e18
+        //tekka 1e18
+        //ehjc 1e18
+        //rohamanas 1e18
+        //greenbergz 1e18
+        //airdrop 3e18
 
-        uint256[] memory initAmount = new uint[](2);
-        initAmount[0] = uint(10e18);
-        initAmount[1] = uint(10e18);
+        address[] memory initVe = new address[](5);
+        initVe[0] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initVe[1] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initVe[2] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initVe[3] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initVe[4] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
 
-        minter.initialize(initVe, initAmount, uint(50e18));//needs some init stuff
+        uint256[] memory initVeAmount = new uint[](5);
+        initVeAmount[0] = uint(1e18);
+        initVeAmount[1] = uint(5e17);
+        initVeAmount[2] = uint(5e17);
+        initVeAmount[3] = uint(5e17);
+        initVeAmount[4] = uint(5e17);
+
+        address[] memory initToken = new address[](6);
+        initToken[0] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initToken[1] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initToken[2] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initToken[3] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initToken[4] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initToken[5] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+
+        uint256[] memory initTokenAmount = new uint[](6);
+        initTokenAmount[0] = uint(1e18);
+        initTokenAmount[1] = uint(5e17);
+        initTokenAmount[2] = uint(5e17);
+        initTokenAmount[3] = uint(5e17);
+        initTokenAmount[4] = uint(5e17);
+        initTokenAmount[5] = uint(3e18);
+
+        minter.initialize(initVe, initVeAmount, initVe, initTokenAmount,  uint(9e18));//needs some init stuff
 
         vaultConfigurationModule.setDefaultFeePercent(0.1e18);
         vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
