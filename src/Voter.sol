@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
-
+import {Auth, Authority} from "solmate/auth/Auth.sol";
 library Math {
     function min(uint a, uint b) internal pure returns (uint) {
         return a < b ? a : b;
@@ -38,7 +38,6 @@ interface BribeFactory {
 interface IGauge {
     function notifyRewardAmount(address token, uint amount) external;
     function getReward(address account, address[] memory tokens) external;
-    function claimFees() external returns (uint claimed0, uint claimed1);
     function left(address token) external view returns (uint);
 }
 
@@ -52,7 +51,7 @@ interface IMinter {
     function update_period() external returns (uint);
 }
 
-contract Voter {
+contract Voter is Auth {
 
     address public immutable _ve; // the ve token that governs these contracts
     address internal immutable base;
@@ -60,7 +59,7 @@ contract Voter {
     address public immutable bribefactory;
     uint internal constant DURATION = 7 days; // rewards are released over 7 days
     address public minter;
-
+    bool public openListing = false;
     uint public totalWeight; // total voting weight
 
     address[] public assets; // all assets viable for incentives
@@ -85,7 +84,13 @@ contract Voter {
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
     event Whitelisted(address indexed whitelister, address indexed token);
 
-    constructor(address __ve, address  _gauges, address _bribes) {
+    constructor(
+        address guardian,
+        address authority,
+        address __ve,
+        address _gauges,
+        address _bribes
+    ) Auth(guardian, Authority(authority)) {
         _ve = __ve;
         base = ve(__ve).token();
         gaugefactory = _gauges;
@@ -159,38 +164,38 @@ contract Voter {
         _vote(_tokenId, _poolVote, _weights);
     }
 
-    function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
+    function _vote(uint _tokenId, address[] memory _assetVote, int256[] memory _weights) internal {
         _reset(_tokenId);
-        uint _poolCnt = _poolVote.length;
+        uint _assetCnt = _assetVote.length;
         int256 _weight = int256(ve(_ve).balanceOfNFT(_tokenId));
         int256 _totalVoteWeight = 0;
         int256 _totalWeight = 0;
         int256 _usedWeight = 0;
 
-        for (uint i = 0; i < _poolCnt; i++) {
+        for (uint i = 0; i < _assetCnt; i++) {
             _totalVoteWeight += _weights[i] > 0 ? _weights[i] : -_weights[i];
         }
 
-        for (uint i = 0; i < _poolCnt; i++) {
-            address _pool = _poolVote[i];
-            address _gauge = gauges[_pool];
+        for (uint i = 0; i < _assetCnt; i++) {
+            address _asset = _assetVote[i];
+            address _gauge = gauges[_asset];
 
             if (isGauge[_gauge]) {
-                int256 _poolWeight = _weights[i] * _weight / _totalVoteWeight;
+                int256 _assetWeight = _weights[i] * _weight / _totalVoteWeight;
                 _updateFor(_gauge);
 
-                assetVote[_tokenId].push(_pool);
+                assetVote[_tokenId].push(_asset);
 
-                weights[_pool] += _poolWeight;
-                votes[_tokenId][_pool] += _poolWeight;
-                if (_poolWeight > 0) {
-                    IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
+                weights[_asset] += _assetWeight;
+                votes[_tokenId][_asset] += _assetWeight;
+                if (_assetWeight > 0) {
+                    IBribe(bribes[_gauge])._deposit(uint256(_assetWeight), _tokenId);
                 } else {
-                    _poolWeight = -_poolWeight;
+                    _assetWeight = - _assetWeight;
                 }
-                _usedWeight += _poolWeight;
-                _totalWeight += _poolWeight;
-                emit Voted(msg.sender, _tokenId, _poolWeight);
+                _usedWeight += _assetWeight;
+                _totalWeight += _assetWeight;
+                emit Voted(msg.sender, _tokenId, _assetWeight);
             }
         }
         if (_usedWeight > 0) ve(_ve).voting(_tokenId);
@@ -198,13 +203,14 @@ contract Voter {
         usedWeights[_tokenId] = uint256(_usedWeight);
     }
 
-    function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
+    function vote(uint tokenId, address[] calldata _assetVote, int256[] calldata _weights) external {
         require(ve(_ve).isApprovedOrOwner(msg.sender, tokenId));
-        require(_poolVote.length == _weights.length);
-        _vote(tokenId, _poolVote, _weights);
+        require(_assetVote.length == _weights.length);
+        _vote(tokenId, _assetVote, _weights);
     }
 
     function whitelist(address _token, uint _tokenId) public {
+        require(openListing, "not open for general listing");
         if (_tokenId > 0) {
             require(msg.sender == ve(_ve).ownerOf(_tokenId));
             require(ve(_ve).balanceOfNFT(_tokenId) > listing_fee());
@@ -212,6 +218,19 @@ contract Voter {
             _safeTransferFrom(base, msg.sender, minter, listing_fee());
         }
 
+        _whitelist(_token);
+    }
+
+    function enableOpenListing() public requiresAuth {
+        openListing = true;
+    }
+
+    function disableOpenListing() public requiresAuth {
+        openListing = false;
+    }
+
+
+    function whitelist(address _token) public requiresAuth {
         _whitelist(_token);
     }
 
@@ -326,18 +345,18 @@ contract Voter {
         }
     }
 
-    function claimFees(address[] memory _fees, address[][] memory _tokens, uint _tokenId) external {
-        require(ve(_ve).isApprovedOrOwner(msg.sender, _tokenId));
-        for (uint i = 0; i < _fees.length; i++) {
-            IBribe(_fees[i]).getRewardForOwner(_tokenId, _tokens[i]);
-        }
-    }
-
-    function distributeFees(address[] memory _gauges) external {
-        for (uint i = 0; i < _gauges.length; i++) {
-            IGauge(_gauges[i]).claimFees();
-        }
-    }
+//    function claimFees(address[] memory _fees, address[][] memory _tokens, uint _tokenId) external {
+//        require(ve(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+//        for (uint i = 0; i < _fees.length; i++) {
+//            IBribe(_fees[i]).getRewardForOwner(_tokenId, _tokens[i]);
+//        }
+//    }
+//
+//    function distributeFees(address[] memory _gauges) external {
+//        for (uint i = 0; i < _gauges.length; i++) {
+//            IGauge(_gauges[i]).claimFees();
+//        }
+//    }
 
     function distribute(address _gauge) public lock {
         IMinter(minter).update_period();

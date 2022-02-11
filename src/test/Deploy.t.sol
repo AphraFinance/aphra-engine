@@ -18,8 +18,8 @@ import {ICurve} from "../interfaces/StrategyInterfaces.sol";
 
 import {Vault} from "../Vault.sol";
 import {VaultFactory} from "../VaultFactory.sol";
-import {GaugeFactory} from "../Gauges.sol";
-import {BribeFactory} from "../Bribes.sol";
+import {GaugeFactory, Gauge} from "../Gauges.sol";
+import {BribeFactory, Bribe} from "../Bribes.sol";
 import {veAPHRA} from "../veAPHRA.sol";
 import {ve_dist} from "../ve_dist.sol";
 import {Minter} from "../Minter.sol";
@@ -97,7 +97,7 @@ contract DeployTest is DSTestPlus {
         bribes = new BribeFactory();
         Ve = new veAPHRA(address(aphra), GOVERNANCE, address(multiRolesAuthority));
         Ve_dist = new ve_dist(address(Ve));
-        voter = new Voter(address(Ve), address(gauges), address(bribes));
+        voter = new Voter(GOVERNANCE,address(multiRolesAuthority), address(Ve), address(gauges), address(bribes));
         minter = new Minter(address(voter), address(Ve), address(Ve_dist));
 
         //create airdrop
@@ -142,11 +142,11 @@ contract DeployTest is DSTestPlus {
         );
         hevm.stopPrank();
 
-        giveTokens(address(underlying), 100_000_000e18);
+        giveTokens(address(underlying), 100_000_000e18, address(this));
 
         address dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
-        giveTokens(dai, 100_000_000e18);
+        giveTokens(dai, 100_000_000e18, address(this));
 
         ERC20(dai).approve(POOL, type(uint256).max);
 
@@ -222,7 +222,7 @@ contract DeployTest is DSTestPlus {
         initVeAmount[4] = uint(5e17);
 
         address[] memory initToken = new address[](6);
-        initToken[0] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        initToken[0] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446); //vesting contracts that can start being claimed when the token unlocks
         initToken[1] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
         initToken[2] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
         initToken[3] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
@@ -237,8 +237,14 @@ contract DeployTest is DSTestPlus {
         initTokenAmount[4] = uint(5e17);
         initTokenAmount[5] = uint(3e18);
 
-        minter.initialize(initVe, initVeAmount, initVe, initTokenAmount,  uint(9e18));//needs some init stuff
+        minter.initialize(initVe, initVeAmount, initVe, initTokenAmount,  uint(9e18));
 
+        Gauge newGauge = Gauge(voter.createGauge(address(underlying)));
+        giveTokens(address(underlying), uint(50e18), address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446));
+        hevm.startPrank(address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446),address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446));
+        underlying.approve(address(newGauge), type(uint).max);
+        newGauge.deposit(uint(1e18), 1); //venft 1
+        hevm.stopPrank();
         vaultConfigurationModule.setDefaultFeePercent(0.1e18);
         vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
         vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
@@ -258,6 +264,9 @@ contract DeployTest is DSTestPlus {
         multiRolesAuthority.setUserRole(address(vault), uint8(ROLES.VAULT), true);
         multiRolesAuthority.setRoleCapability(uint8(ROLES.VAULT), strategy1.mint.selector, true);
         hevm.stopPrank();
+
+        assertEq(aphra.totalSupply(), 9e18);
+
     }
 
     function printPeg() internal {
@@ -269,20 +278,20 @@ contract DeployTest is DSTestPlus {
         console.log("peg/1e3", tpool_amount * 1e3 / usdv_amount);
     }
 
-    function giveTokens(address token, uint256 amount) internal {
+    function giveTokens(address token, uint256 amount, address to) internal {
         // Edge case - balance is already set for some reason
-        if (ERC20(token).balanceOf(address(this)) == amount) return;
+        if (ERC20(token).balanceOf(to) == amount) return;
 
         for (int256 i = 0; i < 100; i++) {
             // Scan the storage for the balance storage slot
-            bytes32 prevValue = hevm.load(token, keccak256(abi.encode(address(this), uint256(i))));
-            hevm.store(token, keccak256(abi.encode(address(this), uint256(i))), bytes32(amount));
-            if (ERC20(token).balanceOf(address(this)) == amount) {
+            bytes32 prevValue = hevm.load(token, keccak256(abi.encode(address(to), uint256(i))));
+            hevm.store(token, keccak256(abi.encode(address(to), uint256(i))), bytes32(amount));
+            if (ERC20(token).balanceOf(address(to)) == amount) {
                 // Found it
                 return;
             } else {
                 // Keep going after restoring the original value
-                hevm.store(token, keccak256(abi.encode(address(this), uint256(i))), prevValue);
+                hevm.store(token, keccak256(abi.encode(address(to), uint256(i))), prevValue);
             }
         }
 
@@ -378,6 +387,5 @@ contract DeployTest is DSTestPlus {
 //            printPeg();
 //
 //            //        vault.withdraw(1363636363636363636);
-//            //        assertEq(vault.balanceOf(address(this)), 0);
 //        }
 }

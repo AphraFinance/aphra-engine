@@ -444,17 +444,26 @@ contract Gauge {
         totalSupply += amount;
         balanceOf[msg.sender] += amount;
 
-        if (tokenId > 0) {
-            require(ve(_ve).ownerOf(tokenId) == msg.sender);
-            if (tokenIds[msg.sender] == 0) {
-                tokenIds[msg.sender] = tokenId;
-                Voter(voter).attachTokenToGauge(tokenId, msg.sender);
-            }
-            require(tokenIds[msg.sender] == tokenId);
-        } else {
-            //initialize a lock to recieve rewards into.
-            tokenId = ve(_ve).create_lock_for(0, DURATION, msg.sender);
+        if (tokenId == 0) {
+            tokenId = ve(_ve).create_lock_for(0, DURATION, msg.sender); // estimate unlock
         }
+        require(ve(_ve).ownerOf(tokenId) == msg.sender);
+        if (tokenIds[msg.sender] == 0) {
+            tokenIds[msg.sender] = tokenId;
+            Voter(voter).attachTokenToGauge(tokenId, msg.sender);
+        }
+        require(tokenIds[msg.sender] == tokenId);
+//        if (tokenId > 0) {
+//            require(ve(_ve).ownerOf(tokenId) == msg.sender);
+//            if (tokenIds[msg.sender] == 0) {
+//                tokenIds[msg.sender] = tokenId;
+//                Voter(voter).attachTokenToGauge(tokenId, msg.sender);
+//            }
+//            require(tokenIds[msg.sender] == tokenId);
+//        } else {
+//            //initialize a lock to recieve rewards into.
+//            tokenId = 0;
+//        }
 
         uint _derivedBalance = derivedBalances[msg.sender];
         derivedSupply -= _derivedBalance;
