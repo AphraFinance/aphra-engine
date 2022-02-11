@@ -83,14 +83,15 @@ contract Voter is Auth {
     event Attach(address indexed owner, address indexed gauge, uint tokenId);
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
     event Whitelisted(address indexed whitelister, address indexed token);
+    event DeListed(address indexed delister, address indexed token);
 
     constructor(
-        address guardian,
-        address authority,
+        address _guardian,
+        address _authority,
         address __ve,
         address _gauges,
         address _bribes
-    ) Auth(guardian, Authority(authority)) {
+    ) Auth(_guardian, Authority(_authority)) {
         _ve = __ve;
         base = ve(__ve).token();
         gaugefactory = _gauges;
@@ -229,9 +230,18 @@ contract Voter is Auth {
         openListing = false;
     }
 
+    function removeListing(address _token) public requiresAuth {
+        _removeListing(_token);
+    }
 
     function whitelist(address _token) public requiresAuth {
         _whitelist(_token);
+    }
+
+    function _removeListing(address _token) internal {
+        require(isWhitelisted[_token]);
+        isWhitelisted[_token] = false;
+        emit DeListed(msg.sender, _token);
     }
 
     function _whitelist(address _token) internal {

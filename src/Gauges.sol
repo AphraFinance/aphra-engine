@@ -24,6 +24,7 @@ interface ve {
     function isApprovedOrOwner(address, uint) external view returns (bool);
     function isUnlocked() external view returns (bool);
     function create_lock_for(uint _value, uint _lock_duration, address _to) external returns (uint);
+    function deposit_for(uint _tokenId, uint _value) external;
     function ownerOf(uint) external view returns (address);
     function transferFrom(address, address, uint) external;
 }
@@ -288,10 +289,15 @@ contract Gauge {
               if (ve(_ve).isUnlocked()) {
                   _safeTransfer(tokens[i], account, _reward); //setup gauges to send you veAPHRA while token is unlocked
               } else {
+                  uint tokenId = tokenIds[msg.sender];
 
+                  if (tokenId == 0) {
+                      tokenIds[msg.sender] = ve(_ve).create_lock_for(_reward, DURATION, msg.sender);
+                  } else {
+                      ve(_ve).deposit_for(tokenId, _reward);
+                  }
               }
             }
-
             emit ClaimRewards(msg.sender, tokens[i], _reward);
         }
 
@@ -319,11 +325,10 @@ contract Gauge {
         uint _derived = _balance * 40 / 100;
         uint _adjusted = 0;
         uint _supply = erc20(_ve).totalSupply();
-//        //TODO: consider scrapping the boost
-//        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0) {
-//            _adjusted = ve(_ve).balanceOfNFT(_tokenId);
-//            _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
-//        }
+        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0) {
+            _adjusted = ve(_ve).balanceOfNFT(_tokenId);
+            _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
+        }
         return Math.min((_derived + _adjusted), _balance);
     }
 
