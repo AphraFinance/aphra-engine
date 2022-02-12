@@ -460,7 +460,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     }
 
     modifier isUnlocked() {
-        require(unlocked, "contract must be unlocked to do that");
+        require(unlocked, "contract must be unlocked");
         _;
     }
 
