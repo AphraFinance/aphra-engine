@@ -40,6 +40,8 @@ function build_to_hardhat_deploy(){
   cp -r src/ srcBuild/ || true
   rm -rf srcBuild/test
   cp -r lib/ libBuild/ || true
+
+  # TODO: loop for all libs and then replace like below
   find libBuild/ -type f \( -iname "*.sol" ! -iname "*test*" ! -iname "*DSTestPlus*" \) -exec sed -i '' 's+"solmate/+"@rari-capital/solmate/src/+g' {} + || true
   find srcBuild/ -type f \( -iname "*.sol" ! -iname "*test*" ! -iname "*DSTestPlus*" \) -exec sed -i '' 's+"solmate/+"@rari-capital/solmate/src/+g' {} + || true
 
