@@ -10,7 +10,7 @@ import {ERC20Strategy} from "../interfaces/Strategy.sol";
 import {VaderGateway, IVaderMinter} from "../VaderGateway.sol";
 import {IERC20, IUniswap, IXVader, ICurve} from "../interfaces/StrategyInterfaces.sol";
 
-contract USDVOverPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnderPegStrategy", 18), ERC20Strategy {
+contract USDVUnderPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnderPegStrategy", 18), ERC20Strategy {
 
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;

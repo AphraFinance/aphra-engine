@@ -18,15 +18,15 @@ import {ICurve} from "../interfaces/StrategyInterfaces.sol";
 
 import {Vault} from "../Vault.sol";
 import {VaultFactory} from "../VaultFactory.sol";
-import {GaugeFactory, Gauge} from "../Gauges.sol";
-import {BribeFactory, Bribe} from "../Bribes.sol";
+import {GaugeFactory, Gauge} from "../Gauge.sol";
+import {BribeFactory, Bribe} from "../Bribe.sol";
 import {veAPHRA} from "../veAPHRA.sol";
 import {ve_dist} from "../ve_dist.sol";
 import {Minter} from "../Minter.sol";
 import {Voter} from "../Voter.sol";
 import {AphraToken} from "../AphraToken.sol";
+import {AirdropClaim} from "../AirdropClaim.sol";
 import "./console.sol";
-import "../AirdropClaim.sol";
 
 
 contract DeployTest is DSTestPlus {
