@@ -1,0 +1,15 @@
+{
+  "name": "aphra-engine",
+  "dependencies": {
+    "@rari-capital/solmate": "^6.2.0",
+    "hardhat": "^2.8.4",
+    "local": "^0.3.3"
+  },
+  "scripts": {
+    "deploy": "NODE_DEBUG=1 yarn -r ts-node/register deploy.ts"
+  },
+  "devDependencies": {
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
+  }
+}
