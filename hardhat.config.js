@@ -407,7 +407,6 @@ task(
     const fullPath = wallet_hdpath + account_index;
     if (DEBUG) console.log("fullPath", fullPath);
     const derrived = hdwallet.derivePath(fullPath);
-    const { wallet } = derrived.getWallet();
     const privateKey = "0x" + derrived._hdkey._privateKey.toString("hex");
     if (DEBUG) console.log("privateKey", privateKey);
     const EthUtil = require("ethereumjs-util");
@@ -438,7 +437,7 @@ task(
     let address;
 
     const bip39 = require("bip39");
-    const hdkey = require("ethereumjs-wallet/hdkey");
+    const { hdkey } = require("ethereumjs-wallet/dist");
 
     let mnemonic = "";
     while (contract_address.indexOf(taskArgs.searchFor) != 0) {
@@ -451,12 +450,13 @@ task(
       const account_index = 0;
       const fullPath = wallet_hdpath + account_index;
       if (DEBUG) console.log("fullPath", fullPath);
-      const wallet = hdwallet.derivePath(fullPath).getWallet();
-      const privateKey = "0x" + wallet._privKey.toString("hex");
+      const derrived = hdwallet.derivePath(fullPath);
+      const privateKey = "0x" + derrived._hdkey._privateKey.toString("hex");
       if (DEBUG) console.log("privateKey", privateKey);
       const EthUtil = require("ethereumjs-util");
       address =
-        "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
+        "0x" +
+        EthUtil.privateToAddress(derrived._hdkey._privateKey).toString("hex");
 
       const rlp = require("rlp");
       const keccak = require("keccak");
@@ -510,8 +510,8 @@ task(
       const account_index = 0;
       const fullPath = wallet_hdpath + account_index;
       if (DEBUG) console.log("fullPath", fullPath);
-      const wallet = hdwallet.derivePath(fullPath).getWallet();
-      const privateKey = "0x" + wallet._privKey.toString("hex");
+      const derrived = hdwallet.derivePath(fullPath);
+      const privateKey = "0x" + derrived._hdkey._privateKey.toString("hex");
       if (DEBUG) console.log("privateKey", privateKey);
       const EthUtil = require("ethereumjs-util");
       const address =
