@@ -221,68 +221,68 @@ contract IntegrationTest is DSTestPlus {
     }
 
 
-//    function testIntegration() public {
-//        multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
-//        multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);
-//        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestDelay.selector, true);
-//        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestWindow.selector, true);
-//        multiRolesAuthority.setRoleCapability(0, Vault.setTargetFloatPercent.selector, true);
-//
-//        multiRolesAuthority.setUserRole(address(vaultInitializationModule), 1, true);
-//        multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
-//
-//
-//        vaultConfigurationModule.setDefaultFeePercent(0.1e18);
-//        vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
-//        vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
-//        vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
-//
-//        //deploy and initialize vault
-//        Vault vault = vaultFactory.deployVault(underlying);
-//        vaultInitializationModule.initializeVault(vault);
-//
-//        //setup setup strategy as a valid auth for the minter
-//        multiRolesAuthority.setUserRole(address(strategy1), 2, true);
-//        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerMint.selector, true);
-//        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerBurn.selector, true);
-//
-//        //setup vault as as a valid auth for the strategy minter
-//        multiRolesAuthority.setUserRole(address(vault), 3, true);
-//        multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
-//
-//        uint256 treasury = 1_000_000e18;
-//
-//        underlying.approve(address(vault), type(uint256).max);
-//        vault.deposit(treasury);
-//
-//        vault.trustStrategy(strategy1);
-//        vault.depositIntoStrategy(strategy1, treasury);
-//        vault.pushToWithdrawalStack(strategy1);
-//
-//        vaultConfigurationModule.setDefaultFeePercent(0.2e18);
-//        assertEq(vault.feePercent(), 0.1e18);
-//
-//        vaultConfigurationModule.syncFeePercent(vault);
-//        assertEq(vault.feePercent(), 0.2e18);
-//
-//        //peg arb swap to xvader
-//        hevm.startPrank(GOVERNANCE, GOVERNANCE);
-//        uint256 hitAmount = 80_000e18;
-//        startMeasuringGas("strategy hit");
-//        strategy1.hit(hitAmount, int128(1), new address[](0));
-//        stopMeasuringGas();
-//        hevm.stopPrank();
-//        Strategy[] memory strategiesToHarvest = new Strategy[](1);
-//        strategiesToHarvest[0] = strategy1;
-//        startMeasuringGas("Vault Harvest");
-//        vault.harvest(strategiesToHarvest);
-//        stopMeasuringGas();
-//
-//        hevm.warp(block.timestamp + vault.harvestDelay());
-//
-//        printPeg();
-//
-//        //        vault.withdraw(1363636363636363636);
-//        //        assertEq(vault.balanceOf(address(this)), 0);
-//    }
+    function testIntegration() public {
+        multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestDelay.selector, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestWindow.selector, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setTargetFloatPercent.selector, true);
+
+        multiRolesAuthority.setUserRole(address(vaultInitializationModule), 1, true);
+        multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
+
+
+        vaultConfigurationModule.setDefaultFeePercent(0.1e18);
+        vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
+        vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
+        vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
+
+        //deploy and initialize vault
+        Vault vault = vaultFactory.deployVault(underlying);
+        vaultInitializationModule.initializeVault(vault);
+
+        //setup setup strategy as a valid auth for the minter
+        multiRolesAuthority.setUserRole(address(strategy1), 2, true);
+        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerMint.selector, true);
+        multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerBurn.selector, true);
+
+        //setup vault as as a valid auth for the strategy minter
+        multiRolesAuthority.setUserRole(address(vault), 3, true);
+        multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
+
+        uint256 treasury = 1_000_000e18;
+
+        underlying.approve(address(vault), type(uint256).max);
+        vault.deposit(treasury);
+
+        vault.trustStrategy(strategy1);
+        vault.depositIntoStrategy(strategy1, treasury);
+        vault.pushToWithdrawalStack(strategy1);
+
+        vaultConfigurationModule.setDefaultFeePercent(0.2e18);
+        assertEq(vault.feePercent(), 0.1e18);
+
+        vaultConfigurationModule.syncFeePercent(vault);
+        assertEq(vault.feePercent(), 0.2e18);
+
+        //peg arb swap to xvader
+        hevm.startPrank(GOVERNANCE, GOVERNANCE);
+        uint256 hitAmount = 80_000e18;
+        startMeasuringGas("strategy hit");
+        strategy1.hit(hitAmount, int128(1), new address[](0));
+        stopMeasuringGas();
+        hevm.stopPrank();
+        Strategy[] memory strategiesToHarvest = new Strategy[](1);
+        strategiesToHarvest[0] = strategy1;
+        startMeasuringGas("Vault Harvest");
+        vault.harvest(strategiesToHarvest);
+        stopMeasuringGas();
+
+        hevm.warp(block.timestamp + vault.harvestDelay());
+
+        printPeg();
+
+        //        vault.withdraw(1363636363636363636);
+        //        assertEq(vault.balanceOf(address(this)), 0);
+    }
 }

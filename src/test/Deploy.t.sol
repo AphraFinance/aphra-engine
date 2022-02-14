@@ -95,15 +95,37 @@ contract DeployTest is DSTestPlus {
         aphra = new AphraToken(GOVERNANCE, address(multiRolesAuthority));
         gauges = new GaugeFactory();
         bribes = new BribeFactory();
-        Ve = new veAPHRA(address(aphra), GOVERNANCE, address(multiRolesAuthority));
-        Ve_dist = new ve_dist(address(Ve));
-        voter = new Voter(GOVERNANCE,address(multiRolesAuthority), address(Ve), address(gauges), address(bribes));
-        minter = new Minter(address(voter), address(Ve), address(Ve_dist));
+        Ve = new veAPHRA(
+            address(aphra),
+            GOVERNANCE,
+            address(multiRolesAuthority)
+        );
+        Ve_dist = new ve_dist(
+            address(Ve)
+        );
+        voter = new Voter(
+            GOVERNANCE,
+            address(multiRolesAuthority),
+            address(Ve),
+            address(gauges),
+            address(bribes)
+        );
+        minter = new Minter(
+            address(voter),
+            address(Ve),
+            address(Ve_dist)
+        );
 
         //create airdrop
-        airdropClaim = new AirdropClaim(0xd0aa6a4e5b4e13462921d7518eebdb7b297a7877d6cfe078b0c318827392fb55, address(Ve));
+        airdropClaim = new AirdropClaim(
+            0xd0aa6a4e5b4e13462921d7518eebdb7b297a7877d6cfe078b0c318827392fb55,
+            address(Ve)
+        );
 
-        vaultFactory = new VaultFactory(address(this), multiRolesAuthority);
+        vaultFactory = new VaultFactory(
+            address(this),
+            multiRolesAuthority
+        );
 
         vaderGateway = new VaderGateway(
             address(VADER_MINTER),
@@ -158,7 +180,6 @@ contract DeployTest is DSTestPlus {
     }
 
     enum ROLES {
-        MINTER,
         GOVERNANCE,
         VAULT_CONFIG,
         VAULT_INIT_MODULE,
@@ -191,12 +212,14 @@ contract DeployTest is DSTestPlus {
         multiRolesAuthority.setRoleCapability(uint8(ROLES.VAULT_INIT_MODULE), Vault.initialize.selector, true);
         hevm.stopPrank();
     }
+
     function testDeploy() public {
 
         address[] memory initDepositAssets = new address[](2);
         initDepositAssets[0] = address(underlying);
         initDepositAssets[1] = address(usdv);
-        voter.initialize(initDepositAssets, address(minter));//needs some init stuff
+        voter.initialize(initDepositAssets, address(minter));
+        //needs some init stuff
         //address[] memory claimants,
         //        uint[] memory amounts,
         //        uint max
@@ -222,7 +245,8 @@ contract DeployTest is DSTestPlus {
         initVeAmount[4] = uint(5e17);
 
         address[] memory initToken = new address[](6);
-        initToken[0] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446); //vesting contracts that can start being claimed when the token unlocks
+        initToken[0] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
+        //vesting contracts that can start being claimed when the token unlocks
         initToken[1] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
         initToken[2] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
         initToken[3] = address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446);
@@ -237,13 +261,14 @@ contract DeployTest is DSTestPlus {
         initTokenAmount[4] = uint(5e17);
         initTokenAmount[5] = uint(3e18);
 
-        minter.initialize(initVe, initVeAmount, initVe, initTokenAmount,  uint(9e18));
+        minter.initialize(initVe, initVeAmount, initVe, initTokenAmount, uint(9e18));
 
         Gauge newGauge = Gauge(voter.createGauge(address(underlying)));
         giveTokens(address(underlying), uint(50e18), address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446));
-        hevm.startPrank(address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446),address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446));
+        hevm.startPrank(address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446), address(0x86d3ee9ff0983Bc33b93cc8983371a500f873446));
         underlying.approve(address(newGauge), type(uint).max);
-        newGauge.deposit(uint(1e18), 1); //venft 1
+        newGauge.deposit(uint(1e18), 1);
+        //venft 1
         hevm.stopPrank();
         vaultConfigurationModule.setDefaultFeePercent(0.1e18);
         vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
@@ -320,72 +345,72 @@ contract DeployTest is DSTestPlus {
     }
 
 
-//        function testIntegration() public {
-//            hevm.startPrank(
-//                GOVERNANCE, GOVERNANCE
-//            );
-//            multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
-//            multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);
-//            multiRolesAuthority.setRoleCapability(0, Vault.setHarvestDelay.selector, true);
-//            multiRolesAuthority.setRoleCapability(0, Vault.setHarvestWindow.selector, true);
-//            multiRolesAuthority.setRoleCapability(0, Vault.setTargetFloatPercent.selector, true);
-//
-//            multiRolesAuthority.setUserRole(address(vaultInitializationModule), 1, true);
-//            multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
-//
-//
-//            vaultConfigurationModule.setDefaultFeePercent(0.1e18);
-//            vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
-//            vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
-//            vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
-//
-//            //deploy and initialize vault
-//            Vault vault = vaultFactory.deployVault(underlying);
-//            vaultInitializationModule.initializeVault(vault);
-//
-//            //setup setup strategy as a valid auth for the minter
-//            multiRolesAuthority.setUserRole(address(strategy1), 2, true);
-//            multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerMint.selector, true);
-//            multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerBurn.selector, true);
-//
-//            //setup vault as as a valid auth for the strategy minter
-//            multiRolesAuthority.setUserRole(address(vault), 3, true);
-//            multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
-//            hevm.stopPrank();
-//            uint256 treasury = 1_000_000e18;
-//
-//            underlying.approve(address(vault), type(uint256).max);
-//            vault.deposit(treasury);
-//            hevm.startPrank(
-//                GOVERNANCE, GOVERNANCE
-//            );
-//            vault.trustStrategy(strategy1);
-//            vault.depositIntoStrategy(strategy1, treasury);
-//            vault.pushToWithdrawalStack(strategy1);
-//
-//            vaultConfigurationModule.setDefaultFeePercent(0.2e18);
-//            assertEq(vault.feePercent(), 0.1e18);
-//
-//            vaultConfigurationModule.syncFeePercent(vault);
-//            assertEq(vault.feePercent(), 0.2e18);
-//
-//            //peg arb swap to xvader
-//            uint256 hitAmount = 80_000e18;
-//            startMeasuringGas("strategy hit");
-//            strategy1.hit(hitAmount, int128(1), new address[](0));
-//            stopMeasuringGas();
-//            hevm.stopPrank();
-//
-//            Strategy[] memory strategiesToHarvest = new Strategy[](1);
-//            strategiesToHarvest[0] = strategy1;
-//            startMeasuringGas("Vault Harvest");
-//            vault.harvest(strategiesToHarvest);
-//            stopMeasuringGas();
-//
-//            hevm.warp(block.timestamp + vault.harvestDelay());
-//
-//            printPeg();
-//
-//            //        vault.withdraw(1363636363636363636);
-//        }
+    //        function testIntegration() public {
+    //            hevm.startPrank(
+    //                GOVERNANCE, GOVERNANCE
+    //            );
+    //            multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
+    //            multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);
+    //            multiRolesAuthority.setRoleCapability(0, Vault.setHarvestDelay.selector, true);
+    //            multiRolesAuthority.setRoleCapability(0, Vault.setHarvestWindow.selector, true);
+    //            multiRolesAuthority.setRoleCapability(0, Vault.setTargetFloatPercent.selector, true);
+    //
+    //            multiRolesAuthority.setUserRole(address(vaultInitializationModule), 1, true);
+    //            multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
+    //
+    //
+    //            vaultConfigurationModule.setDefaultFeePercent(0.1e18);
+    //            vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
+    //            vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
+    //            vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
+    //
+    //            //deploy and initialize vault
+    //            Vault vault = vaultFactory.deployVault(underlying);
+    //            vaultInitializationModule.initializeVault(vault);
+    //
+    //            //setup setup strategy as a valid auth for the minter
+    //            multiRolesAuthority.setUserRole(address(strategy1), 2, true);
+    //            multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerMint.selector, true);
+    //            multiRolesAuthority.setRoleCapability(2, vaderGateway.partnerBurn.selector, true);
+    //
+    //            //setup vault as as a valid auth for the strategy minter
+    //            multiRolesAuthority.setUserRole(address(vault), 3, true);
+    //            multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
+    //            hevm.stopPrank();
+    //            uint256 treasury = 1_000_000e18;
+    //
+    //            underlying.approve(address(vault), type(uint256).max);
+    //            vault.deposit(treasury);
+    //            hevm.startPrank(
+    //                GOVERNANCE, GOVERNANCE
+    //            );
+    //            vault.trustStrategy(strategy1);
+    //            vault.depositIntoStrategy(strategy1, treasury);
+    //            vault.pushToWithdrawalStack(strategy1);
+    //
+    //            vaultConfigurationModule.setDefaultFeePercent(0.2e18);
+    //            assertEq(vault.feePercent(), 0.1e18);
+    //
+    //            vaultConfigurationModule.syncFeePercent(vault);
+    //            assertEq(vault.feePercent(), 0.2e18);
+    //
+    //            //peg arb swap to xvader
+    //            uint256 hitAmount = 80_000e18;
+    //            startMeasuringGas("strategy hit");
+    //            strategy1.hit(hitAmount, int128(1), new address[](0));
+    //            stopMeasuringGas();
+    //            hevm.stopPrank();
+    //
+    //            Strategy[] memory strategiesToHarvest = new Strategy[](1);
+    //            strategiesToHarvest[0] = strategy1;
+    //            startMeasuringGas("Vault Harvest");
+    //            vault.harvest(strategiesToHarvest);
+    //            stopMeasuringGas();
+    //
+    //            hevm.warp(block.timestamp + vault.harvestDelay());
+    //
+    //            printPeg();
+    //
+    //            //        vault.withdraw(1363636363636363636);
+    //        }
 }

@@ -1,18 +1,28 @@
 pragma solidity ^0.8.11;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
-import {Auth, Authority} from "solmate/auth/Auth.sol";
 
-contract AphraToken is Auth, ERC20("Aphra Finance DAO", "APHRA", 18) {
+contract AphraToken is ERC20("Aphra Finance DAO", "APHRA", 18) {
 
+
+    error NotMinter();
+    event MinterChanged(address newMinter, address minter);
+
+    address public minter;
     constructor(
-        address GOVERNANCE_,
-        address AUTHORITY_
-    ) Auth(GOVERNANCE_, Authority(AUTHORITY_)) {
+    ) {
+        minter = msg.sender;
         _mint(msg.sender, 0);
     }
 
-    function mint(address account, uint amount) requiresAuth external returns (bool) { //minter is allowed to call
+    function setMinter(address newMinter_) external {
+        if (msg.sender != minter) revert NotMinter();
+        minter = newMinter_;
+        emit MinterChanged(newMinter_, minter);
+    }
+
+    function mint(address account, uint amount) external returns (bool) { //minter is allowed to call
+        if (msg.sender != minter) revert NotMinter();
         _mint(account, amount);
         return true;
     }

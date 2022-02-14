@@ -36,7 +36,7 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         address WETH_
     ) Auth(GOVERNANCE_, AUTHORITY_) { //set authority to something that enables operators for aphra
         UNDERLYING = UNDERLYING_; //vader
-        BASE_UNIT = 10**UNDERLYING_.decimals();
+        BASE_UNIT = 10e18;
 
         POOL = ICurve(POOL_);
         XVADER = IXVader(XVADER_);
