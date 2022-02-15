@@ -25,7 +25,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "hardhat";
+const defaultNetwork = "localhost";
 
 const mainnetGwei = 21;
 
@@ -65,7 +65,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "http://erigon.dappnode:8545",
+        url: "",
       },
       accounts: {
         mnemonic: mnemonic(),
