@@ -92,7 +92,7 @@ contract DeployTest is DSTestPlus {
         underlying = ERC20(address(0x2602278EE1882889B946eb11DC0E810075650983));
         usdv = ERC20(address(0xea3Fb6f331735252E7Bfb0b24b3B761301293DBe));
 
-        aphra = new AphraToken(GOVERNANCE, address(multiRolesAuthority));
+        aphra = new AphraToken();
         gauges = new GaugeFactory();
         bribes = new BribeFactory();
         Ve = new veAPHRA(
@@ -196,9 +196,6 @@ contract DeployTest is DSTestPlus {
         hevm.startPrank(
             GOVERNANCE, GOVERNANCE
         );
-        //MINTER
-        multiRolesAuthority.setUserRole(address(minter), uint8(ROLES.MINTER), true);
-        multiRolesAuthority.setRoleCapability(uint8(ROLES.MINTER), AphraToken.mint.selector, true);
 
         // VAULT CONFIG module permissions
         multiRolesAuthority.setUserRole(address(vaultConfigurationModule), uint8(ROLES.VAULT_CONFIG), true);

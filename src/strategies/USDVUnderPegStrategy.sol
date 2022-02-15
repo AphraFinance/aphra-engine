@@ -93,17 +93,12 @@ contract USDVUnderPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnder
     function mint(uint256 amount) external requiresAuth override returns (uint256) {
         _mint(msg.sender, amount.fdiv(_exchangeRate(), BASE_UNIT));
         UNDERLYING.safeTransferFrom(msg.sender, address(this), amount);
-        _stakeUnderlying(UNDERLYING.balanceOf(address(this)));
         return 0;
     }
 
     function redeemUnderlying(uint256 amount) external override returns (uint256) {
         _burn(msg.sender, amount.fdiv(_exchangeRate(), BASE_UNIT));
 
-        if (UNDERLYING.balanceOf(address(this)) < amount) {
-            uint leaveAmount = amount - UNDERLYING.balanceOf(address(this));
-            _unstakeUnderlying(leaveAmount);
-        }
         UNDERLYING.safeTransfer(msg.sender, amount);
 
         return 0;
@@ -121,18 +116,6 @@ contract USDVUnderPegStrategy is Auth, ERC20("USDVUnderPegStrategy", "aUSDVUnder
 
     uint256 internal immutable BASE_UNIT;
 
-    function _stakeUnderlying(uint vAmount) internal {
-        XVADER.enter(vAmount);
-    }
-
-    function _computeStakedSharesForUnderlying(uint vAmount) internal returns(uint256) {
-        return (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
-    }
-
-    function _unstakeUnderlying(uint vAmount) internal {
-        uint shares = _computeStakedSharesForUnderlying(vAmount);
-        XVADER.leave(shares);
-    }
 
     function _swapToUnderlying(uint vAmountIn_, int128 enterCoin_, address[] memory path_) internal returns (uint oAmount) {
 

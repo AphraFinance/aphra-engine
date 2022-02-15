@@ -4,15 +4,13 @@ const {
   VADER_ADDR,
   VADER_MINTER,
   USDV_ADDR,
-  UNIROUTER,
-  WETH,
 } = require("../aphraAddressConfig");
 
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const multiRolesAuthority = await deployments.get("MultiRolesAuthority");
-  const vaderGateway = await deploy("VaderGateway", {
+  await deploy("VaderGateway", {
     from: deployer,
     args: [
       VADER_MINTER,
@@ -21,6 +19,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       VADER_ADDR,
       USDV_ADDR,
     ],
+    log: true,
   });
 };
 module.exports.tags = ["VaderGateway"];

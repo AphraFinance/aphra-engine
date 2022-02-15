@@ -3,12 +3,12 @@ const { utils } = require("ethers");
 const fs = require("fs");
 const chalk = require("chalk");
 
-require("@nomiclabs/hardhat-waffle");
-require("@tenderly/hardhat-tenderly");
+// require("@nomiclabs/hardhat-waffle");
+// require("@tenderly/hardhat-tenderly");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 
-require("@nomiclabs/hardhat-ethers");
+require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
@@ -64,9 +64,12 @@ module.exports = {
 
   networks: {
     hardhat: {
-      // accounts: {
-      //   mnemonic: mnemonic(),
-      // },
+      forking: {
+        url: "http://erigon.dappnode:8545",
+      },
+      accounts: {
+        mnemonic: mnemonic(),
+      },
     },
     localhost: {
       accounts: {

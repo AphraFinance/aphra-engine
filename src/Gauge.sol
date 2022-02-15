@@ -50,7 +50,7 @@ contract Gauge {
     address public immutable bribe;
     address public immutable voter;
 
-
+    bool internal paused;
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
 
@@ -115,6 +115,21 @@ contract Gauge {
         bribe = _bribe;
         _ve = __ve;
         voter = _voter;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "paused");
+        _;
+    }
+
+    function pause() external {
+        require(msg.sender == voter, "must be from voter");
+        paused = true;
+    }
+
+    function unpause() external {
+        require(msg.sender == voter, "must be from voter");
+        paused = false;
     }
 
     // simple re-entrancy check
@@ -311,7 +326,6 @@ contract Gauge {
         _writeSupplyCheckpoint();
     }
 
-
     function rewardPerToken(address token) public view returns (uint) {
         if (derivedSupply == 0) {
             return rewardPerTokenStored[token];
@@ -442,7 +456,8 @@ contract Gauge {
         deposit(erc20(stake).balanceOf(msg.sender), tokenId);
     }
 
-    function deposit(uint amount, uint tokenId) public lock {
+
+    function deposit(uint amount, uint tokenId) public whenNotPaused lock {
         require(amount > 0);
 
         _safeTransferFrom(stake, msg.sender, address(this), amount);
