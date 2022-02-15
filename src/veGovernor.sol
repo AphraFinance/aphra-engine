@@ -189,37 +189,37 @@ contract veGovernor {
         return newProposal.id;
     }
 
-    function queue(uint proposalId) public {
-        require(state(proposalId) == ProposalState.Succeeded, "veGovernor::queue: proposal can only be queued if it is succeeded");
-        Proposal storage proposal = proposals[proposalId];
+    function queue(uint proposalId_) public {
+        require(state(proposalId_) == ProposalState.Succeeded, "veGovernor::queue: proposal can only be queued if it is succeeded");
+        Proposal storage proposal = proposals[proposalId_];
         uint eta = (block.timestamp + timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
             _queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
         }
         proposal.eta = eta;
-        emit ProposalQueued(proposalId, eta);
+        emit ProposalQueued(proposalId_, eta);
     }
 
-    function _queueOrRevert(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
-        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "veGovernor::_queueOrRevert: proposal action already queued at eta");
-        timelock.queueTransaction(target, value, signature, data, eta);
+    function _queueOrRevert(address target_, uint value_, string memory signature_, bytes memory data_, uint eta_) internal {
+        require(!timelock.queuedTransactions(keccak256(abi.encode(target_, value_, signature_, data_, eta_))), "veGovernor::_queueOrRevert: proposal action already queued at eta");
+        timelock.queueTransaction(target_, value_, signature_, data_, eta_);
     }
 
-    function execute(uint proposalId) public payable {
-        require(state(proposalId) == ProposalState.Queued, "veGovernor::execute: proposal can only be executed if it is queued");
-        Proposal storage proposal = proposals[proposalId];
+    function execute(uint proposalId_) public payable {
+        require(state(proposalId_) == ProposalState.Queued, "veGovernor::execute: proposal can only be executed if it is queued");
+        Proposal storage proposal = proposals[proposalId_];
         proposal.executed = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
             timelock.executeTransaction{value:proposal.values[i]}(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
-        emit ProposalExecuted(proposalId);
+        emit ProposalExecuted(proposalId_);
     }
 
-    function cancel(uint proposalId) public {
-        ProposalState currentState = state(proposalId);
+    function cancel(uint proposalId_) public {
+        ProposalState currentState = state(proposalId_);
         require(currentState != ProposalState.Executed, "veGovernor::cancel: cannot cancel executed proposal");
 
-        Proposal storage proposal = proposals[proposalId];
+        Proposal storage proposal = proposals[proposalId_];
         require(msg.sender == guardian || ve.balanceOfNFTAt(proposal.badgeId, (block.number - 1)) < proposalThreshold(), "veGovernor::cancel: proposer above threshold");
 
         proposal.canceled = true;
@@ -227,21 +227,21 @@ contract veGovernor {
             timelock.cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
 
-        emit ProposalCanceled(proposalId);
+        emit ProposalCanceled(proposalId_);
     }
 
-    function getActions(uint proposalId) public view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {
-        Proposal storage p = proposals[proposalId];
+    function getActions(uint proposalId_) public view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {
+        Proposal storage p = proposals[proposalId_];
         return (p.targets, p.values, p.signatures, p.calldatas);
     }
 
-    function getReceipt(uint proposalId, uint badgeId) public view returns (Receipt memory) {
-        return proposals[proposalId].receipts[badgeId];
+    function getReceipt(uint proposalId_, uint badgeId_) public view returns (Receipt memory) {
+        return proposals[proposalId_].receipts[badgeId_];
     }
 
-    function state(uint proposalId) public view returns (ProposalState) {
-        require(proposalCount >= proposalId && proposalId > 0, "veGovernor::state: invalid proposal id");
-        Proposal storage proposal = proposals[proposalId];
+    function state(uint proposalId_) public view returns (ProposalState) {
+        require(proposalCount >= proposalId_ && proposalId_ > 0, "veGovernor::state: invalid proposal id");
+        Proposal storage proposal = proposals[proposalId_];
         if (proposal.canceled) {
             return ProposalState.Canceled;
         } else if (block.number <= proposal.startBlock) {
@@ -261,40 +261,40 @@ contract veGovernor {
         }
     }
 
-    function castVote(uint badgeId, uint proposalId, bool support) public {
-        require(msg.sender == ve.ownerOf(badgeId));
-        return _castVote(badgeId, proposalId, support);
+    function castVote(uint badgeId_, uint proposalId_, bool support_) public {
+        require(msg.sender == ve.ownerOf(badgeId_));
+        return _castVote(badgeId_, proposalId_, support_);
     }
 
-    function castVoteBySig(uint badgeId, uint proposalId, bool support, uint8 v, bytes32 r, bytes32 s) public {
+    function castVoteBySig(uint badgeId_, uint proposalId_, bool support_, uint8 v_, bytes32 r_, bytes32 s_) public {
         bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
-        bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH,badgeId, proposalId, support));
+        bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, badgeId_, proposalId_, support_));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
-        address signatory = ecrecover(digest, v, r, s);
+        address signatory = ecrecover(digest, v_, r_, s_);
 
-        require(signatory == ve.ownerOf(badgeId), "veGovernor::castVoteBySig: invalid signature");
+        require(signatory == ve.ownerOf(badgeId_), "veGovernor::castVoteBySig: invalid signature");
 
-        return _castVote(badgeId, proposalId, support);
+        return _castVote(badgeId_, proposalId_, support_);
     }
 
-    function _castVote(uint badgeId, uint proposalId, bool support) internal {
-        require(state(proposalId) == ProposalState.Active, "veGovernor::_castVote: voting is closed");
-        Proposal storage proposal = proposals[proposalId];
-        Receipt storage receipt = proposal.receipts[badgeId];
+    function _castVote(uint badgeId_, uint proposalId_, bool support_) internal {
+        require(state(proposalId_) == ProposalState.Active, "veGovernor::_castVote: voting is closed");
+        Proposal storage proposal = proposals[proposalId_];
+        Receipt storage receipt = proposal.receipts[badgeId_];
         require(receipt.hasVoted == false, "veGovernor::_castVote: badgeId already voted");
-        uint votes = ve.balanceOfNFTAt(badgeId, proposal.startBlock);
+        uint votes = ve.balanceOfNFTAt(badgeId_, proposal.startBlock);
 
-        if (support) {
+        if (support_) {
             proposal.forVotes = proposal.forVotes + votes;
         } else {
             proposal.againstVotes = proposal.againstVotes + votes;
         }
 
         receipt.hasVoted = true;
-        receipt.support = support;
+        receipt.support = support_;
         receipt.votes = votes;
 
-        emit VoteCast(badgeId, proposalId, support, votes);
+        emit VoteCast(badgeId_, proposalId_, support_, votes);
     }
 
     function __acceptAdmin() public {
@@ -307,14 +307,14 @@ contract veGovernor {
         guardian = address(0);
     }
 
-    function __queueSetTimelockPendingAdmin(address newPendingAdmin, uint eta) public {
+    function __queueSetTimelockPendingAdmin(address newPendingAdmin_, uint eta_) public {
         require(msg.sender == guardian, "veGovernor::__queueSetTimelockPendingAdmin: sender must be gov guardian");
-        timelock.queueTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
+        timelock.queueTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin_), eta_);
     }
 
-    function __executeSetTimelockPendingAdmin(address newPendingAdmin, uint eta) public {
+    function __executeSetTimelockPendingAdmin(address newPendingAdmin_, uint eta_) public {
         require(msg.sender == guardian, "veGovernor::__executeSetTimelockPendingAdmin: sender must be gov guardian");
-        timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
+        timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin_), eta_);
     }
 
     function getChainId() internal view returns (uint) {

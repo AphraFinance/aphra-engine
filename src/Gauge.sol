@@ -473,8 +473,11 @@ contract Gauge {
             require(tokenIds[msg.sender] == tokenId);
         } else {
             tokenId = tokenIds[msg.sender];
+            //if no token id and ve is not unlocked, then setup lock for
+
             if (tokenId == 0) {
-                tokenId = ve(_ve).create_lock_for(0, DURATION, msg.sender); // TODO: estimate unlock
+                // TODO: should we set this to duration * 2 when not unlocked so locks are issued at default on 2 week rotations
+                tokenId = ve(_ve).create_lock_for(0, DURATION, msg.sender);
             }
         }
 
