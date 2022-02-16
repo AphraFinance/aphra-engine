@@ -183,6 +183,8 @@ contract Voter is Auth {
 
             if (isGauge[_gauge]) {
                 int256 _assetWeight = _weights[i] * _weight / _totalVoteWeight;
+                require(votes[_tokenId][_asset] == 0);
+                require(_assetWeight != 0);
                 _updateFor(_gauge);
 
                 assetVote[_tokenId].push(_asset);

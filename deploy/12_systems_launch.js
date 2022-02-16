@@ -1,14 +1,8 @@
 const { ethers } = require("hardhat");
-const {
-  USDV_ADDR,
-  VADER_ADDR,
-  ROLES,
-  POOL,
-  EMPTY,
-} = require("../aphraAddressConfig");
+
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { getContract } = ethers;
-  const { deploy, execute } = deployments;
+  const { execute } = deployments;
   const { deployer } = await getNamedAccounts();
   const Minter = await getContract("Minter");
   const Voter = await getContract("Voter");
@@ -56,7 +50,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     ]
   );
 };
-module.exports.tags = ["SystemOnline"];
+module.exports.tags = ["v0"];
 module.exports.runAtEnd = true;
 module.exports.depedencies = [
   "AphraToken",
