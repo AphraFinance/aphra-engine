@@ -2,19 +2,19 @@ const { ethers } = require("hardhat");
 const { USDV_ADDR, VADER_ADDR, ROLES, POOL } = require("../aphraAddressConfig");
 const { chalk } = require("chalk");
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-  const { deploy } = deployments;
+  const { deploy, execute, read, save } = deployments;
   const { deployer } = await getNamedAccounts();
-  const MultiRoleAuthority = await ethers.getContract("MultiRolesAuthority");
+  const MultiRolesAuthority = await ethers.getContract("MultiRolesAuthority");
 
   await deploy("VaultFactory", {
     from: deployer,
-    args: [deployer, MultiRoleAuthority.address],
+    args: [deployer, MultiRolesAuthority.address],
     log: true,
   });
 
   const VaultConfigurationModule = await deploy("VaultConfigurationModule", {
     from: deployer,
-    args: [deployer, MultiRoleAuthority.address],
+    args: [deployer, MultiRolesAuthority.address],
     log: true,
   });
 
@@ -23,134 +23,209 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     args: [
       VaultConfigurationModule.address,
       deployer,
-      MultiRoleAuthority.address,
+      MultiRolesAuthority.address,
     ],
     log: true,
   });
-
-  const VaultConfigurationModuleContract = await ethers.getContract(
-    "VaultConfigurationModule"
+  await execute(
+    // execute function call on contract
+    "VaultConfigurationModule",
+    { from: deployer, log: true },
+    "setDefaultFeePercent",
+    ...[ethers.utils.parseEther("0.1")]
+  );
+  await execute(
+    // execute function call on contract
+    "VaultConfigurationModule",
+    { from: deployer, log: true },
+    "setDefaultHarvestDelay",
+    ...[21600]
+  );
+  await execute(
+    // execute function call on contract
+    "VaultConfigurationModule",
+    { from: deployer, log: true },
+    "setDefaultHarvestWindow",
+    ...[300]
   );
 
-  await VaultConfigurationModuleContract.functions.setDefaultFeePercent(
-    ethers.utils.parseEther("0.1", { from: deployer })
+  await execute(
+    // execute function call on contract
+    "VaultConfigurationModule",
+    { from: deployer, log: true },
+    "setDefaultTargetFloatPercent",
+    ...[ethers.utils.parseEther("0.01")]
   );
-  await VaultConfigurationModuleContract.functions.setDefaultHarvestDelay(
-    21600,
-    {
-      from: deployer,
-    }
-  ); //6 hours
-  await VaultConfigurationModuleContract.functions.setDefaultHarvestWindow(
-    300,
-    {
-      from: deployer,
-    }
-  ); // 5 mins
-
-  await VaultConfigurationModuleContract.functions.setDefaultTargetFloatPercent(
-    ethers.utils.parseEther("0.01"),
-    { from: deployer }
+  const avVaderTxnReceipt = await execute(
+    // execute function call on contract
+    "VaultFactory",
+    { from: deployer, log: true },
+    "deployVault",
+    ...[VADER_ADDR]
   );
 
-  const VaultFactory = await ethers.getContract("VaultFactory");
-
-  //deploy a vader vault
-  const vaderVaultDeployTx = await VaultFactory.functions.deployVault(
-    VADER_ADDR,
-    {
-      from: deployer,
-    }
-  );
-  console.log(await vaderVaultDeployTx.wait());
-  const usdvVaultDeployTx = await VaultFactory.functions.deployVault(
-    USDV_ADDR,
-    {
-      from: deployer,
-    }
-  );
-  console.log(await usdvVaultDeployTx.wait());
-  const usdv3CrvVaultTx = await VaultFactory.functions.deployVault(POOL, {
-    from: deployer,
-  });
-  console.log(await usdv3CrvVaultTx.wait());
-
-  const VaultInitializationModuleContract = await ethers.getContract(
-    "VaultInitializationModule"
+  const avUSDVTxnReceipt = await execute(
+    // execute function call on contract
+    "VaultFactory",
+    { from: deployer, log: true },
+    "deployVault",
+    ...[USDV_ADDR]
   );
 
-  const vaderVaultAddress = await VaultFactory.functions.getVaultFromUnderlying(
-    VADER_ADDR
+  const avUSDV3crvTxnReceipt = await execute(
+    // execute function call on contract
+    "VaultFactory",
+    { from: deployer, log: true },
+    "deployVault",
+    ...[POOL]
   );
-  const USDVVaultAddress = await VaultFactory.functions.getVaultFromUnderlying(
-    USDV_ADDR
-  );
-  const USDV3crvVaultAddress =
-    await VaultFactory.functions.getVaultFromUnderlying(POOL);
 
-  const VaderVaultContract = await ethers.getContractAt(
+  const avVaderAddress = await read(
+    "VaultFactory",
+    { from: deployer, log: true },
+    "getVaultFromUnderlying",
+    ...[VADER_ADDR]
+  );
+
+  const USDVVaultAddress = await read(
+    "VaultFactory",
+    { from: deployer, log: true },
+    "getVaultFromUnderlying",
+    ...[USDV_ADDR]
+  );
+  const USDV3crvVaultAddress = await read(
+    "VaultFactory",
+    { from: deployer, log: true },
+    "getVaultFromUnderlying",
+    ...[POOL]
+  );
+  const VaultArtifact = await deployments.getArtifact("Vault");
+  const AphraVaultContract = await ethers.getContractAt(
     "Vault",
-    vaderVaultAddress[0]
+    avVaderAddress
   );
+  const avVaderDeployment = {
+    abi: VaultArtifact.abi,
+    address: avVaderAddress,
+    transactionHash: avVaderTxnReceipt.transactionHash,
+    receipt: avVaderTxnReceipt,
+  };
+  await save("avVader", avVaderDeployment);
+
+  const avUSDVDeployment = {
+    abi: VaultArtifact.abi,
+    address: USDVVaultAddress,
+    transactionHash: avUSDVTxnReceipt.transactionHash,
+    receipt: avUSDVTxnReceipt,
+  };
+  await save("avUSDV", avUSDVDeployment);
+
+  const avUSDV3CRVDeployment = {
+    abi: VaultArtifact.abi,
+    address: USDV3crvVaultAddress,
+    transactionHash: avUSDV3crvTxnReceipt.transactionHash,
+    receipt: avUSDV3crvTxnReceipt,
+  };
+  await save("avUSDV3CRV", avUSDV3CRVDeployment);
   // VAULT CONFIG module permissions
-  await MultiRoleAuthority.functions.setUserRole(
-    VaultConfigurationModule.address,
-    ROLES.VAULT_CONFIG,
-    true
+
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setUserRole",
+    ...[VaultConfigurationModule.address, ROLES.VAULT_CONFIG, true]
+  );
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setRoleCapability",
+    ...[
+      ROLES.VAULT_CONFIG,
+      AphraVaultContract.interface.getSighash("setFeePercent"),
+      true,
+    ]
+  );
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setRoleCapability",
+    ...[
+      ROLES.VAULT_CONFIG,
+      AphraVaultContract.interface.getSighash("setHarvestDelay"),
+      true,
+    ]
+  );
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setRoleCapability",
+    ...[
+      ROLES.VAULT_CONFIG,
+      AphraVaultContract.interface.getSighash("setHarvestWindow"),
+      true,
+    ]
   );
 
-  await MultiRoleAuthority.functions.setRoleCapability(
-    ROLES.VAULT_CONFIG,
-    VaderVaultContract.interface.getSighash("setFeePercent"),
-    true
-  );
-  await MultiRoleAuthority.functions.setRoleCapability(
-    ROLES.VAULT_CONFIG,
-    VaderVaultContract.interface.getSighash("setHarvestDelay"),
-    true
-  );
-  await MultiRoleAuthority.functions.setRoleCapability(
-    ROLES.VAULT_CONFIG,
-    VaderVaultContract.interface.getSighash("setHarvestWindow"),
-    true
-  );
-  await MultiRoleAuthority.functions.setRoleCapability(
-    ROLES.VAULT_CONFIG,
-    VaderVaultContract.interface.getSighash("setTargetFloatPercent"),
-    true
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setRoleCapability",
+    ...[
+      ROLES.VAULT_CONFIG,
+      AphraVaultContract.interface.getSighash("setTargetFloatPercent"),
+      true,
+    ]
   );
 
-  //vault init module permissions
-  await MultiRoleAuthority.functions.setUserRole(
-    VaultInitializationModule.address,
-    ROLES.VAULT_INIT_MODULE,
-    true
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setUserRole",
+    ...[VaultInitializationModule.address, ROLES.VAULT_INIT_MODULE, true]
   );
-  await MultiRoleAuthority.functions.setRoleCapability(
-    ROLES.VAULT_INIT_MODULE,
-    VaderVaultContract.interface.getSighash("initialize"),
-    true
+
+  await execute(
+    // execute function call on contract
+    "MultiRolesAuthority",
+    { from: deployer, log: true },
+    "setRoleCapability",
+    ...[
+      ROLES.VAULT_INIT_MODULE,
+      AphraVaultContract.interface.getSighash("initialize"),
+      true,
+    ]
   );
+
   // console.log("📜 " + chalk.magenta("Vader Vault Initialized"));
-  const txn_avVADER =
-    await VaultInitializationModuleContract.functions.initializeVault(
-      vaderVaultAddress[0]
-    );
-  console.log("avVADER", await txn_avVADER.wait());
 
-  // console.log("📜: " + chalk.magenta("USDV Vault Initialized"));
-  const txn_avUSDV =
-    await VaultInitializationModuleContract.functions.initializeVault(
-      USDVVaultAddress[0]
-    );
-  console.log("avUSDV", await txn_avUSDV.wait());
-  // console.log("📜  " + chalk.magenta("USDV 3Crv Vault Initialized"));
-  const txn_avUSDV3crv =
-    await VaultInitializationModuleContract.functions.initializeVault(
-      USDV3crvVaultAddress[0]
-    );
+  await execute(
+    // execute function call on contract
+    "VaultInitializationModule",
+    { from: deployer, log: true },
+    "initializeVault",
+    ...[avVaderAddress]
+  );
+  await execute(
+    // execute function call on contract
+    "VaultInitializationModule",
+    { from: deployer, log: true },
+    "initializeVault",
+    ...[USDVVaultAddress]
+  );
 
-  console.log("avUSDV3Crv", await txn_avUSDV3crv.wait());
+  await execute(
+    // execute function call on contract
+    "VaultInitializationModule",
+    { from: deployer, log: true },
+    "initializeVault",
+    ...[USDV3crvVaultAddress]
+  );
 };
 module.exports.tags = [
   "Vault",
@@ -161,4 +236,4 @@ module.exports.tags = [
   "avUSDV",
   "avUSDV3Crv",
 ];
-module.exports.dependencies = ["MultiRoleAuthority"];
+module.exports.dependencies = ["MultiRolesAuthority"];
