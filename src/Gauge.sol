@@ -344,7 +344,8 @@ contract Gauge {
         uint _derived = _balance * 40 / 100;
         uint _adjusted = 0;
         uint _supply = erc20(_ve).totalSupply();
-        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0) {
+        //only activate boosts on ve unlock
+        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0 && ve(_ve).isUnlocked()) {
             _adjusted = ve(_ve).balanceOfNFT(_tokenId);
             _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
         }
