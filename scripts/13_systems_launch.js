@@ -6,33 +6,32 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const { deployer } = await getNamedAccounts();
   const Minter = await getContract("Minter");
   const Voter = await getContract("Voter");
-  //
-  // await execute(
-  //   // execute function call on contract
-  //   "AphraToken",
-  //   { from: deployer, log: true },
-  //   "setMinter",
-  //   ...[Minter.address]
-  // );
-  // await execute(
-  //   // execute function call on contract
-  //   "veAPHRA",
-  //   { from: deployer, log: true },
-  //   "setVoter",
-  //   ...[Voter.address]
-  // );
-  // await execute(
-  //   // execute function call on contract
-  //   "ve_dist",
-  //   { from: deployer, log: true },
-  //   "setDepositor",
-  //   ...[Minter.address]
-  // );
+
+  await execute(
+    // execute function call on contract
+    "AphraToken",
+    { from: deployer, log: true },
+    "setMinter",
+    ...[Minter.address]
+  );
+  await execute(
+    // execute function call on contract
+    "veAPHRA",
+    { from: deployer, log: true },
+    "setVoter",
+    ...[Voter.address]
+  );
+  await execute(
+    // execute function call on contract
+    "ve_dist",
+    { from: deployer, log: true },
+    "setDepositor",
+    ...[Minter.address]
+  );
   const avVADER = await deployments.get("avVADER");
-  // const avUSDV = await deployments.get("avUSDV");
-  // const avUSDV3Crv = await deployments.get("avUSDV3Crv");
-  const initialAssets = [avVADER.address]; //, avUSDV.address, avUSDV3Crv.address];
-  // await Voter.functions.initialize([], Minter.address);
+  const avUSDV = await deployments.get("avUSDV");
+  const avUSDV3Crv = await deployments.get("avUSDV3Crv");
+  const initialAssets = [avVADER.address, avUSDV.address, avUSDV3Crv.address];
   await execute(
     // execute function call on contract
     "Voter",
@@ -72,69 +71,69 @@ const { getNamedAccounts, deployments, ethers } = hre;
     }
   }
 
-  // const avUSDVGaugeTxn = await execute(
-  //   // execute function call on contract
-  //   "Voter",
-  //   { from: deployer, log: true },
-  //   "createGauge",
-  //   ...[avUSDV.address]
-  // );
-  // console.log(avUSDVGaugeTxn);
-  //
-  // for (let log of avUSDVGaugeTxn.events) {
-  //   if (log.event && log.event === "GaugeCreated") {
-  //     const [gaugeAddress, creator, bribeAddress, asset] = log.args;
-  //
-  //     const GaugeArtifact = await deployments.getArtifact("Gauge");
-  //     const BribeArtifact = await deployments.getArtifact("Bribe");
-  //     const gauge = {
-  //       abi: GaugeArtifact.abi,
-  //       address: gaugeAddress,
-  //       transactionHash: avUSDVGaugeTxn.transactionHash,
-  //       receipt: avUSDVGaugeTxn,
-  //     };
-  //     await save("avUSDVGauge", gauge);
-  //     const bribe = {
-  //       abi: BribeArtifact.abi,
-  //       address: bribeAddress,
-  //       transactionHash: avUSDVGaugeTxn.transactionHash,
-  //       receipt: avUSDVGaugeTxn,
-  //     };
-  //     await save("avUSDVBribe", bribe);
-  //   }
-  // }
-  //
-  // const avUSDV3CrvGaugeTxn = await execute(
-  //   // execute function call on contract
-  //   "Voter",
-  //   { from: deployer, log: true },
-  //   "createGauge",
-  //   ...[avUSDV3Crv.address]
-  // );
-  // console.log(avUSDV3CrvGaugeTxn);
-  //
-  // for (let log of avUSDV3CrvGaugeTxn.events) {
-  //   if (log.event && log.event === "GaugeCreated") {
-  //     const [gaugeAddress, creator, bribeAddress, asset] = log.args;
-  //
-  //     const GaugeArtifact = await deployments.getArtifact("Gauge");
-  //     const BribeArtifact = await deployments.getArtifact("Bribe");
-  //     const avUSDV3CrvGauge = {
-  //       abi: GaugeArtifact.abi,
-  //       address: gaugeAddress,
-  //       transactionHash: avUSDV3CrvGaugeTxn.transactionHash,
-  //       receipt: avUSDV3CrvGaugeTxn,
-  //     };
-  //     await save("avUSDV3CrvGauge", avUSDV3CrvGauge);
-  //     const avUSDV3CrvBribe = {
-  //       abi: BribeArtifact.abi,
-  //       address: bribeAddress,
-  //       transactionHash: avUSDV3CrvGaugeTxn.transactionHash,
-  //       receipt: avUSDV3CrvGaugeTxn,
-  //     };
-  //     await save("avUSDV3CrvBribe", avUSDV3CrvBribe);
-  //   }
-  // }
+  const avUSDVGaugeTxn = await execute(
+    // execute function call on contract
+    "Voter",
+    { from: deployer, log: true },
+    "createGauge",
+    ...[avUSDV.address]
+  );
+  console.log(avUSDVGaugeTxn);
+
+  for (let log of avUSDVGaugeTxn.events) {
+    if (log.event && log.event === "GaugeCreated") {
+      const [gaugeAddress, creator, bribeAddress, asset] = log.args;
+
+      const GaugeArtifact = await deployments.getArtifact("Gauge");
+      const BribeArtifact = await deployments.getArtifact("Bribe");
+      const gauge = {
+        abi: GaugeArtifact.abi,
+        address: gaugeAddress,
+        transactionHash: avUSDVGaugeTxn.transactionHash,
+        receipt: avUSDVGaugeTxn,
+      };
+      await save("avUSDVGauge", gauge);
+      const bribe = {
+        abi: BribeArtifact.abi,
+        address: bribeAddress,
+        transactionHash: avUSDVGaugeTxn.transactionHash,
+        receipt: avUSDVGaugeTxn,
+      };
+      await save("avUSDVBribe", bribe);
+    }
+  }
+
+  const avUSDV3CrvGaugeTxn = await execute(
+    // execute function call on contract
+    "Voter",
+    { from: deployer, log: true },
+    "createGauge",
+    ...[avUSDV3Crv.address]
+  );
+  console.log(avUSDV3CrvGaugeTxn);
+
+  for (let log of avUSDV3CrvGaugeTxn.events) {
+    if (log.event && log.event === "GaugeCreated") {
+      const [gaugeAddress, creator, bribeAddress, asset] = log.args;
+
+      const GaugeArtifact = await deployments.getArtifact("Gauge");
+      const BribeArtifact = await deployments.getArtifact("Bribe");
+      const avUSDV3CrvGauge = {
+        abi: GaugeArtifact.abi,
+        address: gaugeAddress,
+        transactionHash: avUSDV3CrvGaugeTxn.transactionHash,
+        receipt: avUSDV3CrvGaugeTxn,
+      };
+      await save("avUSDV3CrvGauge", avUSDV3CrvGauge);
+      const avUSDV3CrvBribe = {
+        abi: BribeArtifact.abi,
+        address: bribeAddress,
+        transactionHash: avUSDV3CrvGaugeTxn.transactionHash,
+        receipt: avUSDV3CrvGaugeTxn,
+      };
+      await save("avUSDV3CrvBribe", avUSDV3CrvBribe);
+    }
+  }
 
   await execute(
     // execute function call on contract

@@ -51,21 +51,21 @@ const { getNamedAccounts, deployments, ethers } = hre;
     ...[VADER_ADDR]
   );
 
-  // const avUSDVTxnReceipt = await execute(
-  //   // execute function call on contract
-  //   "VaultFactory",
-  //   { from: deployer, log: true },
-  //   "deployVault",
-  //   ...[USDV_ADDR]
-  // );
-  //
-  // const avUSDV3crvTxnReceipt = await execute(
-  //   // execute function call on contract
-  //   "VaultFactory",
-  //   { from: deployer, log: true },
-  //   "deployVault",
-  //   ...[POOL]
-  // );
+  const avUSDVTxnReceipt = await execute(
+    // execute function call on contract
+    "VaultFactory",
+    { from: deployer, log: true },
+    "deployVault",
+    ...[USDV_ADDR]
+  );
+
+  const avUSDV3crvTxnReceipt = await execute(
+    // execute function call on contract
+    "VaultFactory",
+    { from: deployer, log: true },
+    "deployVault",
+    ...[POOL]
+  );
 
   const avVaderAddress = await read(
     "VaultFactory",
@@ -74,18 +74,18 @@ const { getNamedAccounts, deployments, ethers } = hre;
     ...[VADER_ADDR]
   );
 
-  // const USDVVaultAddress = await read(
-  //   "VaultFactory",
-  //   { from: deployer, log: true },
-  //   "getVaultFromUnderlying",
-  //   ...[USDV_ADDR]
-  // );
-  // const USDV3crvVaultAddress = await read(
-  //   "VaultFactory",
-  //   { from: deployer, log: true },
-  //   "getVaultFromUnderlying",
-  //   ...[POOL]
-  // );
+  const USDVVaultAddress = await read(
+    "VaultFactory",
+    { from: deployer, log: true },
+    "getVaultFromUnderlying",
+    ...[USDV_ADDR]
+  );
+  const USDV3crvVaultAddress = await read(
+    "VaultFactory",
+    { from: deployer, log: true },
+    "getVaultFromUnderlying",
+    ...[POOL]
+  );
 
   //setup gauges
 
@@ -102,22 +102,22 @@ const { getNamedAccounts, deployments, ethers } = hre;
   };
   await save("avVADER", avVaderDeployment);
 
-  // const avUSDVDeployment = {
-  //   abi: VaultArtifact.abi,
-  //   address: USDVVaultAddress,
-  //   transactionHash: avUSDVTxnReceipt.transactionHash,
-  //   receipt: avUSDVTxnReceipt,
-  // };
-  // await save("avUSDV", avUSDVDeployment);
-  //
-  // const avUSDV3CRVDeployment = {
-  //   abi: VaultArtifact.abi,
-  //   address: USDV3crvVaultAddress,
-  //   transactionHash: avUSDV3crvTxnReceipt.transactionHash,
-  //   receipt: avUSDV3crvTxnReceipt,
-  // };
-  // await save("avUSDV3Crv", avUSDV3CRVDeployment);
-  // // VAULT CONFIG module permissions
+  const avUSDVDeployment = {
+    abi: VaultArtifact.abi,
+    address: USDVVaultAddress,
+    transactionHash: avUSDVTxnReceipt.transactionHash,
+    receipt: avUSDVTxnReceipt,
+  };
+  await save("avUSDV", avUSDVDeployment);
+
+  const avUSDV3CRVDeployment = {
+    abi: VaultArtifact.abi,
+    address: USDV3crvVaultAddress,
+    transactionHash: avUSDV3crvTxnReceipt.transactionHash,
+    receipt: avUSDV3crvTxnReceipt,
+  };
+  await save("avUSDV3Crv", avUSDV3CRVDeployment);
+  // VAULT CONFIG module permissions
 
   const VaultConfigurationModule = await getContract(
     "VaultConfigurationModule"
@@ -207,20 +207,20 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "initializeVault",
     ...[avVaderAddress]
   );
-  //
-  // await execute(
-  //   // execute function call on contract
-  //   "VaultInitializationModule",
-  //   { from: deployer, log: true },
-  //   "initializeVault",
-  //   ...[USDVVaultAddress]
-  // );
-  //
-  // await execute(
-  //   // execute function call on contract
-  //   "VaultInitializationModule",
-  //   { from: deployer, log: true },
-  //   "initializeVault",
-  //   ...[USDV3crvVaultAddress]
-  // );
+
+  await execute(
+    // execute function call on contract
+    "VaultInitializationModule",
+    { from: deployer, log: true },
+    "initializeVault",
+    ...[USDVVaultAddress]
+  );
+
+  await execute(
+    // execute function call on contract
+    "VaultInitializationModule",
+    { from: deployer, log: true },
+    "initializeVault",
+    ...[USDV3crvVaultAddress]
+  );
 })();
