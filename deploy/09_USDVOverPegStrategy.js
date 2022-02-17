@@ -10,20 +10,21 @@ const {
 
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { deployer, vader, weth, USDV3Crv, xvader, unirouter } =
+    await getNamedAccounts();
   const multiRolesAuthority = await deployments.get("MultiRolesAuthority");
   const vaderGateway = await deployments.get("VaderGateway");
   await deploy("USDVOverPegStrategy", {
     from: deployer,
     args: [
-      VADER_ADDR,
-      GOVERNANCE,
+      vader,
+      deployer,
       multiRolesAuthority.address,
-      POOL,
-      XVADER,
+      USDV3Crv,
+      xvader,
       vaderGateway.address,
-      UNIROUTER,
-      WETH,
+      unirouter,
+      weth,
     ],
     log: true,
   });

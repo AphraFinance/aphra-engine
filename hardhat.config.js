@@ -64,6 +64,7 @@ module.exports = {
 
   networks: {
     hardhat: {
+      chainId: 1,
       forking: {
         url: "http://erigon.dappnode:8545",
       },
@@ -310,12 +311,36 @@ module.exports = {
     solcVersion: "0.7.6",
   },
   namedAccounts: {
+    empty: {
+      default: "0x0000000000000000000000000000000000000000",
+    },
     deployer: {
       default: 0, // here this will by default take the first account as deployer
     },
-    guardianMultiSig: {
+    guardian: {
       default: addressBook.GOVERNANCE,
       1: addressBook.GOVERNANCE,
+    },
+    vader: {
+      default: addressBook.VADER_ADDR,
+    },
+    usdv: {
+      default: addressBook.USDV_ADDR,
+    },
+    USDV3Crv: {
+      default: addressBook.POOL,
+    },
+    vaderMinter: {
+      default: addressBook.VADER_MINTER,
+    },
+    xvader: {
+      default: addressBook.XVADER,
+    },
+    unirouter: {
+      default: addressBook.UNIROUTER,
+    },
+    weth: {
+      default: addressBook.WETH,
     },
   },
   etherscan: {

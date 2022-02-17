@@ -111,6 +111,8 @@ contract DeployTest is DSTestPlus {
             address(bribes)
         );
         minter = new Minter(
+            GOVERNANCE,
+            address(multiRolesAuthority),
             address(voter),
             address(Ve),
             address(Ve_dist)

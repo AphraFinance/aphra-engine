@@ -7,6 +7,10 @@ library Math {
     }
 }
 
+interface IListingFee {
+    function listing_fee() external view returns (uint);
+}
+
 interface erc20 {
     function totalSupply() external view returns (uint256);
     function transfer(address recipient, uint amount) external returns (bool);
@@ -37,6 +41,9 @@ interface BribeFactory {
 
 interface IGauge {
     function notifyRewardAmount(address token, uint amount) external;
+    function stopDeposits() external;
+    function openDeposits() external;
+    function isDepositsOpen() external view returns (bool);
     function getReward(address account, address[] memory tokens) external;
     function left(address token) external view returns (uint);
 }
@@ -55,11 +62,13 @@ contract Voter is Auth {
 
     address public immutable _ve; // the ve token that governs these contracts
     address internal immutable base;
+    address internal listingLP;
+    address internal listingFeeAddr;
     address public immutable gaugefactory;
     address public immutable bribefactory;
     uint internal constant DURATION = 7 days; // rewards are released over 7 days
     address public minter;
-    bool public openListing = false;
+    bool public openListing;
     uint public totalWeight; // total voting weight
 
     address[] public assets; // all assets viable for incentives
@@ -97,6 +106,7 @@ contract Voter is Auth {
         gaugefactory = _gauges;
         bribefactory = _bribes;
         minter = msg.sender;
+        openListing = false;
     }
 
     // simple re-entrancy check
@@ -116,8 +126,12 @@ contract Voter is Auth {
         minter = _minter;
     }
 
+    function setListingFeeAddress(address listingFeeAddress_) external requiresAuth {
+        listingFeeAddr = listingFeeAddress_;
+    }
+
     function listing_fee() public view returns (uint) {
-        return (erc20(base).totalSupply() - erc20(_ve).totalSupply()) / 200;
+        return IListingFee(listingFeeAddr).listing_fee();
     }
 
     function reset(uint _tokenId) external {
@@ -127,20 +141,20 @@ contract Voter is Auth {
     }
 
     function _reset(uint _tokenId) internal {
-        address[] storage _poolVote = assetVote[_tokenId];
-        uint _poolVoteCnt = _poolVote.length;
+        address[] storage _assetVote = assetVote[_tokenId];
+        uint _assetVoteCnt = _assetVote.length;
         int256 _totalWeight = 0;
 
-        for (uint i = 0; i < _poolVoteCnt; i ++) {
-            address _pool = _poolVote[i];
-            int256 _votes = votes[_tokenId][_pool];
+        for (uint i = 0; i < _assetVoteCnt; i ++) {
+            address _asset = _assetVote[i];
+            int256 _votes = votes[_tokenId][_asset];
 
             if (_votes != 0) {
-                _updateFor(gauges[_pool]);
-                weights[_pool] -= _votes;
-                votes[_tokenId][_pool] -= _votes;
+                _updateFor(gauges[_asset]);
+                weights[_asset] -= _votes;
+                votes[_tokenId][_asset] -= _votes;
                 if (_votes > 0) {
-                    IBribe(bribes[gauges[_pool]])._withdraw(uint256(_votes), _tokenId);
+                    IBribe(bribes[gauges[_asset]])._withdraw(uint256(_votes), _tokenId);
                     _totalWeight += _votes;
                 } else {
                     _totalWeight -= _votes;
@@ -154,15 +168,15 @@ contract Voter is Auth {
     }
 
     function poke(uint _tokenId) external {
-        address[] memory _poolVote = assetVote[_tokenId];
-        uint _poolCnt = _poolVote.length;
-        int256[] memory _weights = new int256[](_poolCnt);
+        address[] memory _assetVote = assetVote[_tokenId];
+        uint _assetCnt = _assetVote.length;
+        int256[] memory _weights = new int256[](_assetCnt);
 
-        for (uint i = 0; i < _poolCnt; i ++) {
-            _weights[i] = votes[_tokenId][_poolVote[i]];
+        for (uint i = 0; i < _assetCnt; i ++) {
+            _weights[i] = votes[_tokenId][_assetVote[i]];
         }
 
-        _vote(_tokenId, _poolVote, _weights);
+        _vote(_tokenId, _assetVote, _weights);
     }
 
     function _vote(uint _tokenId, address[] memory _assetVote, int256[] memory _weights) internal {
@@ -181,7 +195,7 @@ contract Voter is Auth {
             address _asset = _assetVote[i];
             address _gauge = gauges[_asset];
 
-            if (isGauge[_gauge]) {
+            if (isGauge[_gauge] && IGauge(_gauge).isDepositsOpen()) {
                 int256 _assetWeight = _weights[i] * _weight / _totalVoteWeight;
                 require(votes[_tokenId][_asset] == 0);
                 require(_assetWeight != 0);
@@ -194,7 +208,7 @@ contract Voter is Auth {
                 if (_assetWeight > 0) {
                     IBribe(bribes[_gauge])._deposit(uint256(_assetWeight), _tokenId);
                 } else {
-                    _assetWeight = - _assetWeight;
+                    _assetWeight = -_assetWeight;
                 }
                 _usedWeight += _assetWeight;
                 _totalWeight += _assetWeight;
@@ -212,31 +226,35 @@ contract Voter is Auth {
         _vote(tokenId, _assetVote, _weights);
     }
 
-    function whitelist(address _token, uint _tokenId) public {
+    function gaugeStopDeposits(address _gauge) external requiresAuth {
+        IGauge(_gauge).stopDeposits();
+    }
+
+    function gaugeOpenDeposits(address _gauge) external requiresAuth {
+        IGauge(_gauge).openDeposits();
+    }
+
+    function whitelist(address _token) external {
         require(openListing, "not open for general listing");
-        if (_tokenId > 0) {
-            require(msg.sender == ve(_ve).ownerOf(_tokenId));
-            require(ve(_ve).balanceOfNFT(_tokenId) > listing_fee());
-        } else {
-            _safeTransferFrom(base, msg.sender, minter, listing_fee());
-        }
+
+        _safeTransferFrom(listingLP, owner, minter, listing_fee());
 
         _whitelist(_token);
     }
 
-    function enableOpenListing() public requiresAuth {
+    function enableOpenListing() external requiresAuth {
         openListing = true;
     }
 
-    function disableOpenListing() public requiresAuth {
+    function disableOpenListing() external requiresAuth {
         openListing = false;
     }
 
-    function removeListing(address _token) public requiresAuth {
+    function removeListing(address _token) external requiresAuth {
         _removeListing(_token);
     }
 
-    function whitelist(address _token) public requiresAuth {
+    function whitelistAsAuth(address _token) external requiresAuth {
         _whitelist(_token);
     }
 
@@ -262,6 +280,7 @@ contract Voter is Auth {
         gauges[_asset] = _gauge;
         assetForGauge[_gauge] = _asset;
         isGauge[_gauge] = true;
+        IGauge(_gauge).openDeposits();
         _updateFor(_gauge);
         assets.push(_asset);
         emit GaugeCreated(_gauge, msg.sender, _bribe, _asset);
@@ -328,8 +347,8 @@ contract Voter is Auth {
     }
 
     function _updateFor(address _gauge) internal {
-        address _pool = assetForGauge[_gauge];
-        int256 _supplied = weights[_pool];
+        address _asset = assetForGauge[_gauge];
+        int256 _supplied = weights[_asset];
         if (_supplied > 0) {
             uint _supplyIndex = supplyIndex[_gauge];
             uint _index = index; // get global index0 for accumulated distro

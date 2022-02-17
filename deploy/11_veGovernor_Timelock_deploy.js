@@ -1,12 +1,4 @@
 const { ethers } = require("hardhat");
-const {
-  USDV_ADDR,
-  VADER_ADDR,
-  ROLES,
-  POOL,
-  EMPTY,
-} = require("../aphraAddressConfig");
-const { chalk } = require("chalk");
 const TWO_DAYS = 172800;
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;

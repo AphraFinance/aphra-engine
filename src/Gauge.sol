@@ -50,7 +50,7 @@ contract Gauge {
     address public immutable bribe;
     address public immutable voter;
 
-    bool internal paused;
+    bool internal depositsOpen;
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
 
@@ -115,21 +115,26 @@ contract Gauge {
         bribe = _bribe;
         _ve = __ve;
         voter = _voter;
+        depositsOpen = true;
     }
 
-    modifier whenNotPaused() {
-        require(!paused, "paused");
+    modifier whenDepositsOpen() {
+        require(depositsOpen, "This gauge is not open for deposits");
         _;
     }
 
-    function pause() external {
+    function stopDeposits() external {
         require(msg.sender == voter, "must be from voter");
-        paused = true;
+        depositsOpen = false;
     }
 
-    function unpause() external {
+    function openDeposits() external {
         require(msg.sender == voter, "must be from voter");
-        paused = false;
+        depositsOpen = true;
+    }
+
+    function isDepositsOpen() external view returns (bool) {
+        return depositsOpen;
     }
 
     // simple re-entrancy check
@@ -457,7 +462,7 @@ contract Gauge {
     }
 
 
-    function deposit(uint amount, uint tokenId) public whenNotPaused lock {
+    function deposit(uint amount, uint tokenId) public whenDepositsOpen lock {
         require(amount > 0);
 
         _safeTransferFrom(stake, msg.sender, address(this), amount);

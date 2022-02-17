@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.11;
-
+import {Auth, Authority} from "solmate/auth/Auth.sol";
 library Math {
     function max(uint a, uint b) internal pure returns (uint) {
         return a >= b ? a : b;
@@ -15,6 +15,7 @@ library Math {
 
 interface ve {
     function token() external view returns (address);
+    function isUnlocked() external view returns (bool);
     function totalSupply() external view returns (uint);
     function create_lock_for(uint, uint, address) external returns (uint);
     function transferFrom(address, address, uint) external;
@@ -23,6 +24,7 @@ interface ve {
 interface underlying {
     function approve(address spender, uint value) external returns (bool);
     function mint(address, uint) external;
+    function setMinter(address) external;
     function totalSupply() external view returns (uint);
     function balanceOf(address) external view returns (uint);
     function transfer(address, uint) external returns (bool);
@@ -40,7 +42,7 @@ interface ve_dist {
 // codifies the minting rules as per ve(3,3), abstracted from the token to support any token that allows minting
 
 //add safetransferlib
-contract Minter {
+contract Minter is Auth {
 
     uint internal constant week = 86400 * 7; // allows minting once per week (reset every Thursday 00:00 UTC)
     uint internal constant emission = 98;
@@ -51,7 +53,7 @@ contract Minter {
     voter public immutable _voter;
     ve public immutable _ve;
     ve_dist public immutable _ve_dist;
-    uint public weekly = 20000000e18;
+    uint public weekly = 625000e18;
     uint public active_period;
     uint internal constant lock = 86400 * 7 * 52 * 2; //TODO setup constants for aphranomics
 
@@ -60,10 +62,12 @@ contract Minter {
     event Mint(address indexed sender, uint weekly, uint circulating_supply, uint circulating_emission);
 
     constructor(
+        address GOVERNANCE_,
+        address AUTHORITY_,
         address __voter, // the voting & distribution system
         address  __ve, // the veAPHRA system that will be locked into
         address __ve_dist // the distribution system that ensures users aren't diluted
-    ) {
+    ) Auth(GOVERNANCE_, Authority(AUTHORITY_)) {
         initializer = msg.sender;
         _token = underlying(ve(__ve).token());
         _voter = voter(__voter);
@@ -72,6 +76,9 @@ contract Minter {
         active_period = (block.timestamp + (2*week)) / week * week;
     }
 
+    function migrateMinter(address newMinter_) external requiresAuth {
+        _token.setMinter(newMinter_);
+    }
     //initialize with 3% airdrop and 6% team
     function initialize(
         address[] memory initVeLocks,
@@ -109,6 +116,9 @@ contract Minter {
 
     // weekly emission takes the max of calculated (aka target) emission versus circulating tail end emission
     function weekly_emission() public view returns (uint) {
+        if(!ve(_ve).isUnlocked()) {
+            return weekly;
+        }
         return Math.max(calculate_emission(), circulating_emission());
     }
 
@@ -119,6 +129,9 @@ contract Minter {
 
     // calculate inflation and adjust ve balances accordingly
     function calculate_growth(uint _minted) public view returns (uint) {
+        if(!ve(_ve).isUnlocked()) {
+            return 0;
+        }
         return _ve.totalSupply() * _minted / _token.totalSupply();
     }
 

@@ -1,24 +1,10 @@
-const { ethers } = require("hardhat");
-const {
-  GOVERNANCE,
-  VADER_ADDR,
-  VADER_MINTER,
-  USDV_ADDR,
-} = require("../aphraAddressConfig");
-
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { deployer, vader, usdv, vaderMinter } = await getNamedAccounts();
   const multiRolesAuthority = await deployments.get("MultiRolesAuthority");
   await deploy("VaderGateway", {
     from: deployer,
-    args: [
-      VADER_MINTER,
-      GOVERNANCE,
-      multiRolesAuthority.address,
-      VADER_ADDR,
-      USDV_ADDR,
-    ],
+    args: [vaderMinter, deployer, multiRolesAuthority.address, vader, usdv],
     log: true,
   });
 };
