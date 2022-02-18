@@ -5,6 +5,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const { execute, read, save } = deployments;
   const { getContract } = ethers;
 
+  const DEFAULT_FEE = "0.8";
   const { deployer } = await getNamedAccounts();
   console.log("setDefaultFeePercent");
   await execute(
@@ -12,7 +13,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "VaultConfigurationModule",
     { from: deployer, log: true },
     "setDefaultFeePercent",
-    ...[ethers.utils.parseEther("0.1")]
+    ...[ethers.utils.parseEther(DEFAULT_FEE)]
   );
   console.log("setDefaultHarvestDelay");
 
@@ -21,7 +22,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "VaultConfigurationModule",
     { from: deployer, log: true },
     "setDefaultHarvestDelay",
-    ...[21600]
+    ...[21600] // 6 hour
   );
   console.log("setDefaultHarvestWindow");
 
@@ -30,7 +31,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "VaultConfigurationModule",
     { from: deployer, log: true },
     "setDefaultHarvestWindow",
-    ...[300]
+    ...[300] // 5 mins
   );
   console.log("setDefaultTargetFloatPercent");
 
@@ -41,7 +42,6 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "setDefaultTargetFloatPercent",
     ...[ethers.utils.parseEther("0.01")]
   );
-  console.log("deployVault");
 
   const avVaderTxnReceipt = await execute(
     // execute function call on contract
@@ -50,7 +50,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "deployVault",
     ...[VADER_ADDR]
   );
-
+  console.log("Deploy VADER Vault", avVaderTxnReceipt);
   const avUSDVTxnReceipt = await execute(
     // execute function call on contract
     "VaultFactory",
@@ -58,14 +58,15 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "deployVault",
     ...[USDV_ADDR]
   );
+  console.log("Deploy USDV Vault", avUSDVTxnReceipt);
 
-  const avUSDV3crvTxnReceipt = await execute(
-    // execute function call on contract
-    "VaultFactory",
-    { from: deployer, log: true },
-    "deployVault",
-    ...[POOL]
-  );
+  // const avUSDV3crvTxnReceipt = await execute(
+  //   // execute function call on contract
+  //   "VaultFactory",
+  //   { from: deployer, log: true },
+  //   "deployVault",
+  //   ...[POOL]
+  // );
 
   const avVaderAddress = await read(
     "VaultFactory",
@@ -80,14 +81,12 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "getVaultFromUnderlying",
     ...[USDV_ADDR]
   );
-  const USDV3crvVaultAddress = await read(
-    "VaultFactory",
-    { from: deployer, log: true },
-    "getVaultFromUnderlying",
-    ...[POOL]
-  );
-
-  //setup gauges
+  // const USDV3crvVaultAddress = await read(
+  //   "VaultFactory",
+  //   { from: deployer, log: true },
+  //   "getVaultFromUnderlying",
+  //   ...[POOL]
+  // );
 
   const VaultArtifact = await deployments.getArtifact("Vault");
   const AphraVaultContract = await ethers.getContractAt(
@@ -109,14 +108,14 @@ const { getNamedAccounts, deployments, ethers } = hre;
     receipt: avUSDVTxnReceipt,
   };
   await save("avUSDV", avUSDVDeployment);
-
-  const avUSDV3CRVDeployment = {
-    abi: VaultArtifact.abi,
-    address: USDV3crvVaultAddress,
-    transactionHash: avUSDV3crvTxnReceipt.transactionHash,
-    receipt: avUSDV3crvTxnReceipt,
-  };
-  await save("avUSDV3Crv", avUSDV3CRVDeployment);
+  //
+  // const avUSDV3CRVDeployment = {
+  //   abi: VaultArtifact.abi,
+  //   address: USDV3crvVaultAddress,
+  //   transactionHash: avUSDV3crvTxnReceipt.transactionHash,
+  //   receipt: avUSDV3crvTxnReceipt,
+  // };
+  // await save("avUSDV3Crv", avUSDV3CRVDeployment);
   // VAULT CONFIG module permissions
 
   const VaultConfigurationModule = await getContract(
@@ -178,6 +177,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const VaultInitializationModule = await getContract(
     "VaultInitializationModule"
   );
+
   await execute(
     // execute function call on contract
     "MultiRolesAuthority",
@@ -185,6 +185,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "setUserRole",
     ...[VaultInitializationModule.address, ROLES.VAULT_INIT_MODULE, true]
   );
+  console.log("MultiRolesAuthority setUserRole VAULT_INIT_MODULE");
 
   await execute(
     // execute function call on contract
@@ -197,8 +198,9 @@ const { getNamedAccounts, deployments, ethers } = hre;
       true,
     ]
   );
-
-  // console.log("📜 " + chalk.magenta("Vader Vault Initialized"));
+  console.log(
+    "MultiRolesAuthority setRoleCapability VAULT_INIT_MODULE initialize"
+  );
 
   await execute(
     // execute function call on contract
@@ -207,6 +209,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "initializeVault",
     ...[avVaderAddress]
   );
+  console.log("avVADER Vault Initialized");
 
   await execute(
     // execute function call on contract
@@ -215,12 +218,13 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "initializeVault",
     ...[USDVVaultAddress]
   );
+  console.log("avUSDV Vault Initialized");
 
-  await execute(
-    // execute function call on contract
-    "VaultInitializationModule",
-    { from: deployer, log: true },
-    "initializeVault",
-    ...[USDV3crvVaultAddress]
-  );
+  // await execute(
+  //   // execute function call on contract
+  //   "VaultInitializationModule",
+  //   { from: deployer, log: true },
+  //   "initializeVault",
+  //   ...[USDV3crvVaultAddress]
+  // );
 })();

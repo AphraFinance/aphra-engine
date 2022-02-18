@@ -3,7 +3,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
 (async () => {
   const { getContract } = ethers;
   const { execute, save } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { deployer, USDV3Crv } = await getNamedAccounts();
   const Minter = await getContract("Minter");
   const Voter = await getContract("Voter");
 
@@ -31,7 +31,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const avVADER = await deployments.get("avVADER");
   const avUSDV = await deployments.get("avUSDV");
   const avUSDV3Crv = await deployments.get("avUSDV3Crv");
-  const initialAssets = [avVADER.address, avUSDV.address, avUSDV3Crv.address];
+  const initialAssets = [avVADER.address, avUSDV.address, USDV3Crv];
   await execute(
     // execute function call on contract
     "Voter",
@@ -103,16 +103,16 @@ const { getNamedAccounts, deployments, ethers } = hre;
     }
   }
 
-  const avUSDV3CrvGaugeTxn = await execute(
+  const USDV3CrvGaugeTxn = await execute(
     // execute function call on contract
     "Voter",
     { from: deployer, log: true },
     "createGauge",
     ...[avUSDV3Crv.address]
   );
-  console.log(avUSDV3CrvGaugeTxn);
+  console.log(USDV3CrvGaugeTxn);
 
-  for (let log of avUSDV3CrvGaugeTxn.events) {
+  for (let log of USDV3CrvGaugeTxn.events) {
     if (log.event && log.event === "GaugeCreated") {
       const [gaugeAddress, creator, bribeAddress, asset] = log.args;
 
@@ -121,15 +121,15 @@ const { getNamedAccounts, deployments, ethers } = hre;
       const avUSDV3CrvGauge = {
         abi: GaugeArtifact.abi,
         address: gaugeAddress,
-        transactionHash: avUSDV3CrvGaugeTxn.transactionHash,
-        receipt: avUSDV3CrvGaugeTxn,
+        transactionHash: USDV3CrvGaugeTxn.transactionHash,
+        receipt: USDV3CrvGaugeTxn,
       };
       await save("avUSDV3CrvGauge", avUSDV3CrvGauge);
       const avUSDV3CrvBribe = {
         abi: BribeArtifact.abi,
         address: bribeAddress,
-        transactionHash: avUSDV3CrvGaugeTxn.transactionHash,
-        receipt: avUSDV3CrvGaugeTxn,
+        transactionHash: USDV3CrvGaugeTxn.transactionHash,
+        receipt: USDV3CrvGaugeTxn,
       };
       await save("avUSDV3CrvBribe", avUSDV3CrvBribe);
     }
