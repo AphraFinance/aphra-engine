@@ -1,5 +1,4 @@
 const { ethers } = require("hardhat");
-const EMPTY = "0x0000000000000000000000000000000000000000";
 
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;

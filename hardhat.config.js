@@ -7,7 +7,7 @@ const addressBook = require("./aphraAddressConfig");
 // require("@tenderly/hardhat-tenderly");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
-
+require("@tenderly/hardhat-tenderly");
 require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
@@ -27,7 +27,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 const defaultNetwork = "hardhat";
 
-const mainnetGwei = 21;
+const mainnetGwei = 70;
 
 function mnemonic() {
   try {
@@ -51,10 +51,15 @@ module.exports = {
    * More here: https://hardhat.org/plugins/hardhat-gas-reporter.html
    */
   gasReporter: {
+    enabled: true,
     currency: "USD",
     coinmarketcap: process.env.COINMARKETCAP || null,
   },
 
+  tenderly: {
+    project: "",
+    username: "androolloyd",
+  },
   // if you want to deploy to a testnet, mainnet, or xdai, you will need to configure:
   // 1. An Infura key (or similar)
   // 2. A private key for the deployer
@@ -344,7 +349,7 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW",
+    apiKey: "WZEYP1G9K1YC8R3VEZV6YAR72TA8ZX28DY",
   },
   paths: {
     sources: "./srcBuild",
@@ -625,8 +630,8 @@ task("send", "Send ETH")
   .addOptionalParam("to", "To address or account index")
   .addOptionalParam("amount", "Amount to send in ether")
   .addOptionalParam("data", "Data included in transaction")
-  .addOptionalParam("gasPrice", "Price you are willing to pay in gwei")
-  .addOptionalParam("gasLimit", "Limit of how much gas to spend")
+  .addOptionalParam("gasprice", "Price you are willing to pay in gwei")
+  .addOptionalParam("gaslimit", "Limit of how much gas to spend")
 
   .setAction(async (taskArgs, { network, ethers }) => {
     const from = await addr(ethers, taskArgs.from);
@@ -646,9 +651,9 @@ task("send", "Send ETH")
         taskArgs.amount ? taskArgs.amount : "0",
         "ether"
       ).toHexString(),
-      nonce: await fromSigner.getTransactionCount(),
+      nonce: 3,
       gasPrice: parseUnits(
-        taskArgs.gasPrice ? taskArgs.gasPrice : "1.001",
+        taskArgs.gasPrice ? taskArgs.gasPrice : "140",
         "gwei"
       ).toHexString(),
       gasLimit: taskArgs.gasLimit ? taskArgs.gasLimit : 24000,

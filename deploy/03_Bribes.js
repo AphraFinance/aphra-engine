@@ -1,6 +1,3 @@
-const { ethers } = require("hardhat");
-const EMPTY = "0x0000000000000000000000000000000000000000";
-
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -14,4 +11,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     log: true,
   });
 };
-module.exports.tags = ["Gauge", "GaugeFactory"];
+module.exports.tags = ["Bribe", "BribeFactory"];
