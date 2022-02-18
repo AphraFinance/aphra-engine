@@ -460,11 +460,6 @@
   resolved "https://registry.npmjs.org/@rari-capital/solmate/-/solmate-6.2.0.tgz"
   integrity sha512-g94F+Ra9ixyJyNgvnOIufNjUz488uEG0nxIEEtJ7+g+tA1XGUupRB2kB5b+VO7WYO26RNOVD2fW6xE4e14iWpg==
 
-"@reddenkarolina/lotide@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@reddenkarolina/lotide/-/lotide-1.0.0.tgz"
-  integrity sha512-oTZrcmJ7cm7L0SddzAeUqnR3SLXKSCqzZGzYaDqYbPFr0+BeGoxh16Dz1iapqvkudfHgeHci2jXFGh6ZHIlY8Q==
-
 "@sentry/core@5.30.0":
   version "5.30.0"
   resolved "https://registry.npmjs.org/@sentry/core/-/core-5.30.0.tgz"
@@ -542,7 +537,7 @@
 
 "@tenderly/hardhat-tenderly@^1.0.13":
   version "1.0.13"
-  resolved "https://registry.npmjs.org/@tenderly/hardhat-tenderly/-/hardhat-tenderly-1.0.13.tgz"
+  resolved "https://registry.yarnpkg.com/@tenderly/hardhat-tenderly/-/hardhat-tenderly-1.0.13.tgz#6182a2d32bf12d110622f0b24263dc964ed7aa6d"
   integrity sha512-XsrF2QIUh8YmzCcWHmPnSNQjZNBQkyrHER8bcrWsFIgL7ub49hmPbpGVB2Isb6gUV/IGBpBm7R69jpmoTvJ17g==
   dependencies:
     axios "^0.21.1"
