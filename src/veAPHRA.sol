@@ -380,7 +380,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     string constant public version = "1.0.0";
     uint8 constant public decimals = 18;
 
-    string internal badgeDescription;
+    string public badgeDescription;
     /// @dev Current count of token
     uint internal tokenId;
 
@@ -414,7 +414,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     /// @dev ERC165 interface ID of ERC721Metadata
     bytes4 internal constant ERC721_METADATA_INTERFACE_ID = 0x5b5e139f;
 
-    bool internal unlocked;
+    bool internal _unlocked;
     /// @dev reentrancy guard
     uint8 internal constant _not_entered = 1;
     uint8 internal constant _entered = 2;
@@ -439,15 +439,19 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         voter = msg.sender;
         point_history[0].blk = block.number;
         point_history[0].ts = block.timestamp;
-        unlocked = false;
+        _unlocked = false;
         supportedInterfaces[ERC165_INTERFACE_ID] = true;
         supportedInterfaces[ERC721_INTERFACE_ID] = true;
         supportedInterfaces[ERC721_METADATA_INTERFACE_ID] = true;
-
+        badgeDescription = string("APHRA Badges, can be used to boost gauge yields, vote on new token emissions, receive protocol bribes and participate in governance");
         // mint-ish
         emit Transfer(address(0), address(this), tokenId);
         // burn-ish
         emit Transfer(address(this), address(0), tokenId);
+    }
+
+    function isUnlocked() public view returns (bool) {
+        return _unlocked;
     }
 
     function setBadgeDescription(string memory _newDescription) requiresAuth external {
@@ -456,12 +460,12 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
     //todo setup so that this is hard coded to be veGovernor
     function unlock() public requiresAuth {
-        require(unlocked == false, "unlock already happened");
-        unlocked = true;
+        require(_unlocked == false, "unlock already happened");
+        _unlocked = true;
     }
 
-    modifier isUnlocked() {
-        require(unlocked, "contract must be unlocked");
+    modifier unlocked() {
+        require(_unlocked, "contract must be unlocked");
         _;
     }
 
@@ -666,7 +670,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         address _from,
         address _to,
         uint _tokenId
-    ) isUnlocked external {
+    ) unlocked external {
         _transferFrom(_from, _to, _tokenId, msg.sender);
     }
 
@@ -698,7 +702,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         address _to,
         uint _tokenId,
         bytes memory _data
-    ) isUnlocked public {
+    ) unlocked public {
         _transferFrom(_from, _to, _tokenId, msg.sender);
 
         if (_isContract(_to)) {
@@ -732,7 +736,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         address _from,
         address _to,
         uint _tokenId
-    ) isUnlocked external {
+    ) unlocked external {
         safeTransferFrom(_from, _to, _tokenId, '');
     }
 
@@ -742,7 +746,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     ///      Throws if `_approved` is the current owner. (NOTE: This is not written the EIP)
     /// @param _approved Address to be approved for the given NFT ID.
     /// @param _tokenId ID of the token to be approved.
-    function approve(address _approved, uint _tokenId) isUnlocked public {
+    function approve(address _approved, uint _tokenId) unlocked public {
         address owner = idToOwner[_tokenId];
         // Throws if `_tokenId` is not a valid NFT
         require(owner != address(0));
@@ -763,7 +767,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
     /// @notice This works even if sender doesn't own any tokens at the time.
     /// @param _operator Address to add to the set of authorized operators.
     /// @param _approved True if the operators is approved, false to revoke approval.
-    function setApprovalForAll(address _operator, bool _approved) isUnlocked external {
+    function setApprovalForAll(address _operator, bool _approved) unlocked external {
         // Throws if `_operator` is the `msg.sender`
         assert(_operator != msg.sender);
         ownerToOperators[msg.sender][_operator] = _approved;
@@ -995,7 +999,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         attachments[_tokenId] = attachments[_tokenId] - 1;
     }
 
-    function merge(uint _from, uint _to) isUnlocked external {
+    function merge(uint _from, uint _to) unlocked external {
         require(attachments[_from] == 0 && !voted[_from], "attached");
         require(_from != _to);
         require(_isApprovedOrOwner(msg.sender, _from));
@@ -1031,7 +1035,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
         require(_value > 0);
         // dev: need non-zero value
-        require(_locked.amount > 0, 'No existing lock found');
+        require(_locked.amount > 0 || !isUnlocked(), 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
         _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
     }
@@ -1044,7 +1048,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK;
         // Locktime is rounded down to weeks
 
-        require(_value > 0);
+        require(_value > 0 || !isUnlocked());
         // dev: need non-zero value
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
         require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 2 years max');
@@ -1079,9 +1083,9 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
         LockedBalance memory _locked = locked[_tokenId];
 
-        assert(_value > 0);
+        assert(_value > 0 || !isUnlocked());
         // dev: need non-zero value
-        require(_locked.amount > 0, 'No existing lock found');
+        require(_locked.amount > 0 || !isUnlocked(), 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
 
         _deposit_for(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
@@ -1106,7 +1110,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
 
     /// @notice Withdraw all tokens for `_tokenId`
     /// @dev Only possible if the lock has expired
-    function withdraw(uint _tokenId) isUnlocked external nonreentrant {
+    function withdraw(uint _tokenId) unlocked external nonreentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
