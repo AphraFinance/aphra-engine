@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -21,7 +22,7 @@ contract AphraToken is ERC20("Aphra Finance DAO", "APHRA", 18) {
         emit MinterChanged(newMinter_, minter);
     }
 
-    function mint(address account, uint amount) external returns (bool) { //minter is allowed to call
+    function mint(address account, uint amount) external returns (bool) {
         if (msg.sender != minter) revert NotMinter();
         _mint(account, amount);
         return true;

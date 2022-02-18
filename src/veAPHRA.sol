@@ -454,6 +454,7 @@ contract veAPHRA is Auth, IERC721, IERC721Metadata {
         badgeDescription = _newDescription;
     }
 
+    //todo setup so that this is hard coded to be veGovernor
     function unlock() public requiresAuth {
         require(unlocked == false, "unlock already happened");
         unlocked = true;

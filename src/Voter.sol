@@ -376,19 +376,6 @@ contract Voter is Auth {
         }
     }
 
-//    function claimFees(address[] memory _fees, address[][] memory _tokens, uint _tokenId) external {
-//        require(ve(_ve).isApprovedOrOwner(msg.sender, _tokenId));
-//        for (uint i = 0; i < _fees.length; i++) {
-//            IBribe(_fees[i]).getRewardForOwner(_tokenId, _tokens[i]);
-//        }
-//    }
-//
-//    function distributeFees(address[] memory _gauges) external {
-//        for (uint i = 0; i < _gauges.length; i++) {
-//            IGauge(_gauges[i]).claimFees();
-//        }
-//    }
-
     function distribute(address _gauge) public lock {
         IMinter(minter).update_period();
         _updateFor(_gauge);

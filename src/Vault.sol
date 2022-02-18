@@ -6,7 +6,7 @@ import {WETH} from "solmate/tokens/WETH.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
-import {FixedPointMathLib} from "./FixedPointMathLib.sol"; //added fdiv and fmul TODO: looking at new rari/next code perhaps we're moving to a new library
+import {FixedPointMathLib} from "./FixedPointMathLib.sol";
 
 import {Strategy, ERC20Strategy, ETHStrategy} from "./interfaces/Strategy.sol";
 

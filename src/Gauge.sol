@@ -23,8 +23,9 @@ interface ve {
     function balanceOfNFT(uint) external view returns (uint);
     function isApprovedOrOwner(address, uint) external view returns (bool);
     function isUnlocked() external view returns (bool);
-    function create_lock_for(uint _value, uint _lock_duration, address _to) external returns (uint);
-    function deposit_for(uint _tokenId, uint _value) external;
+    function locked__end(uint) external view returns (uint);
+    function create_lock_for(uint, uint, address) external returns (uint);
+    function deposit_for(uint, uint) external;
     function ownerOf(uint) external view returns (address);
     function transferFrom(address, address, uint) external;
 }
@@ -311,8 +312,10 @@ contract Gauge {
               } else {
                   uint tokenId = tokenIds[msg.sender];
 
-                  if (tokenId == 0) {
-                      tokenIds[msg.sender] = ve(_ve).create_lock_for(_reward, DURATION, msg.sender);
+                  if (tokenId == 0 || block.timestamp > ve(_ve).locked__end(tokenId)) {
+
+                      //set initial lock for 8 weeks
+                      tokenIds[msg.sender] = ve(_ve).create_lock_for(_reward, DURATION * 8, msg.sender);
                   } else {
                       ve(_ve).deposit_for(tokenId, _reward);
                   }
@@ -462,7 +465,6 @@ contract Gauge {
         deposit(erc20(stake).balanceOf(msg.sender), tokenId);
     }
 
-
     function deposit(uint amount, uint tokenId) public whenDepositsOpen lock {
         require(amount > 0);
 
@@ -479,11 +481,10 @@ contract Gauge {
             require(tokenIds[msg.sender] == tokenId);
         } else {
             tokenId = tokenIds[msg.sender];
-            //if no token id and ve is not unlocked, then setup lock for
 
-            if (tokenId == 0) {
-                // TODO: should we set this to duration * 2 when not unlocked so locks are issued at default on 2 week rotations
-                tokenId = ve(_ve).create_lock_for(0, DURATION, msg.sender);
+            //if no token id and ve is not unlocked, then setup lock for 8 weeks
+            if (tokenId == 0 && !ve(_ve).isUnlocked()) {
+                tokenId = ve(_ve).create_lock_for(0, DURATION * 8, msg.sender);
             }
         }
 

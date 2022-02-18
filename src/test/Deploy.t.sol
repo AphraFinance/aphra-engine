@@ -120,6 +120,7 @@ contract DeployTest is DSTestPlus {
 
         //create airdrop
         airdropClaim = new AirdropClaim(
+            GOVERNANCE,
             0xd0aa6a4e5b4e13462921d7518eebdb7b297a7877d6cfe078b0c318827392fb55,
             address(Ve)
         );

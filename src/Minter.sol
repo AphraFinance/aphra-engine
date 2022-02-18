@@ -48,14 +48,14 @@ contract Minter is Auth {
     uint internal constant emission = 98;
     uint internal constant tail_emission = 2;
     uint internal constant target_base = 100; // 2% per week target emission
-    uint internal constant tail_base = 1000; // 0.2% per week target emission //TODO: set per week emissions
+    uint internal constant tail_base = 1000; // 0.2% per week target emission
     underlying public immutable _token;
     voter public immutable _voter;
     ve public immutable _ve;
     ve_dist public immutable _ve_dist;
-    uint public weekly = 625000e18;
+    uint public weekly = 625_000e18;
     uint public active_period;
-    uint internal constant lock = 86400 * 7 * 52 * 2; //TODO setup constants for aphranomics
+    uint internal constant lock = 86400 * 7 * 52 * 2; //2 year lock
 
     address internal initializer;
 
@@ -66,7 +66,7 @@ contract Minter is Auth {
         address AUTHORITY_,
         address __voter, // the voting & distribution system
         address  __ve, // the veAPHRA system that will be locked into
-        address __ve_dist // the distribution system that ensures users aren't diluted
+        address __ve_dist // the distribution system that ensures users aren't diluted after unlock
     ) Auth(GOVERNANCE_, Authority(AUTHORITY_)) {
         initializer = msg.sender;
         _token = underlying(ve(__ve).token());
@@ -76,10 +76,11 @@ contract Minter is Auth {
         active_period = (block.timestamp + (2*week)) / week * week;
     }
 
+    //for guarded launch
     function migrateMinter(address newMinter_) external requiresAuth {
         _token.setMinter(newMinter_);
     }
-    //initialize with 3% airdrop and 6% team
+
     function initialize(
         address[] memory initVeLocks,
         uint[] memory initVeAmounts,

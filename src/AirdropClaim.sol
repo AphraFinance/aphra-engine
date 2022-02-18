@@ -1,14 +1,16 @@
 pragma solidity ^0.8.11;
+import {Auth, Authority} from "solmate/auth/Auth.sol";
 import { MerkleProof } from "./MerkleProof.sol"; // OZ: MerkleProof
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {veAPHRA} from "./veAPHRA.sol";
-contract AirdropClaim {
+
+contract AirdropClaim is Auth {
 
     /// ============ Immutable storage ============
 
     bytes32 public immutable merkleRoot;
 
-    veAPHRA public immutable _ve;
+    veAPHRA public _ve;
     ERC20 public immutable aphra;
 
     /// ============ Mutable storage ============
@@ -22,13 +24,20 @@ contract AirdropClaim {
     uint internal constant AIRDROP_LOCK = 2 * 365 * 86400;
 
     constructor(
+        address GOVERNANCE_,
         bytes32 MERKLE_ROOT_,
-        address veAPHRA_ADDR
-    ) {
+        address veAPHRA_ADDR_
+    ) Auth(GOVERNANCE_, Authority(address(0))) {
         merkleRoot = MERKLE_ROOT_;
-        _ve = veAPHRA(veAPHRA_ADDR);
+        _ve = veAPHRA(veAPHRA_ADDR_);
         aphra = ERC20(_ve.token());
-        aphra.approve(veAPHRA_ADDR, type(uint).max);
+        aphra.approve(veAPHRA_ADDR_, type(uint).max);
+    }
+
+    //should the ve get updated before the system is crystalized ensure airdrop claimers can get their portion always
+    function setNewVe(address veAPHRA_ADDR_) requiresAuth external {
+        _ve = veAPHRA(veAPHRA_ADDR_);
+        aphra.approve(veAPHRA_ADDR_, type(uint).max);
     }
 
     function claim(address to, uint256 amount, bytes32[] calldata proof) external {
