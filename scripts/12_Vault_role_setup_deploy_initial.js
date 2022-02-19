@@ -60,14 +60,6 @@ const { getNamedAccounts, deployments, ethers } = hre;
   );
   console.log("Deploy USDV Vault", avUSDVTxnReceipt);
 
-  // const avUSDV3crvTxnReceipt = await execute(
-  //   // execute function call on contract
-  //   "VaultFactory",
-  //   { from: deployer, log: true },
-  //   "deployVault",
-  //   ...[POOL]
-  // );
-
   const avVaderAddress = await read(
     "VaultFactory",
     { from: deployer, log: true },
@@ -109,13 +101,6 @@ const { getNamedAccounts, deployments, ethers } = hre;
   };
   await save("avUSDV", avUSDVDeployment);
   //
-  // const avUSDV3CRVDeployment = {
-  //   abi: VaultArtifact.abi,
-  //   address: USDV3crvVaultAddress,
-  //   transactionHash: avUSDV3crvTxnReceipt.transactionHash,
-  //   receipt: avUSDV3crvTxnReceipt,
-  // };
-  // await save("avUSDV3Crv", avUSDV3CRVDeployment);
   // VAULT CONFIG module permissions
 
   const VaultConfigurationModule = await getContract(

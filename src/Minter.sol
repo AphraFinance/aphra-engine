@@ -45,8 +45,8 @@ interface ve_dist {
 contract Minter is Auth {
 
     uint internal constant week = 86400 * 7; // allows minting once per week (reset every Thursday 00:00 UTC)
-    uint internal constant emission = 98;
-    uint internal constant tail_emission = 2;
+    uint internal emission = 98;
+    uint internal tail_emission = 2;
     uint internal constant target_base = 100; // 2% per week target emission
     uint internal constant tail_base = 1000; // 0.2% per week target emission
     underlying public immutable _token;
@@ -58,6 +58,7 @@ contract Minter is Auth {
     uint internal constant lock = 86400 * 7 * 52 * 2; //2 year lock
 
     address internal initializer;
+    address internal airdrop;
 
     event Mint(address indexed sender, uint weekly, uint circulating_supply, uint circulating_emission);
 
@@ -73,7 +74,7 @@ contract Minter is Auth {
         _voter = voter(__voter);
         _ve = ve(__ve);
         _ve_dist = ve_dist(__ve_dist);
-        active_period = (block.timestamp + (2*week)) / week * week;
+        active_period = (block.timestamp + (1 * week)) / week * week;
     }
 
     //for guarded launch
@@ -93,21 +94,36 @@ contract Minter is Auth {
         require(initializer == msg.sender);
         _token.mint(address(this), max);
         _token.approve(address(_ve), type(uint).max);
+
         for (uint i = 0; i < initVeLocks.length; i++) {
             _ve.create_lock_for(initVeAmounts[i], lock, initVeLocks[i]);
         }
+
         for (uint i = 0; i < initToken.length; i++) {
             _token.transfer(initToken[i], initTokenAmounts[i]);
         }
 
         //set airdrop
+        airdrop = address(initToken[initToken.length - 1]); //set to the last item in the initToken array as it is the airdrop
         initializer = address(0);
         active_period = (block.timestamp + week) / week * week;
     }
 
+    function setEmission(uint newEmission_) external requiresAuth {
+        emission = newEmission_;
+    }
+
+    function setTailEmission(uint newTailEmission_) external requiresAuth {
+        tail_emission = newTailEmission_;
+    }
+
+    function setWeeklyRate(uint newWeeklyRate_) external requiresAuth {
+        weekly = newWeeklyRate_;
+    }
+
     // calculate circulating supply as total token supply - locked supply
     function circulating_supply() public view returns (uint) {
-        return _token.totalSupply() - _ve.totalSupply();
+        return _token.totalSupply() - _ve.totalSupply() - _token.balanceOf(airdrop) - _token.balanceOf(owner);
     }
 
     // emission calculation is 2% of available supply to mint adjusted by circulating / total supply

@@ -116,7 +116,7 @@ module.exports = {
     // },
 
     rinkeby: {
-      url: "https://eth-rinkeby.alchemyapi.io/v2/OmkMgqcqXFAre4dT0KyfawexpAP5j43m", // <---- YOUR INFURA ID! (or it won't work)
+      url: "https://eth-rinkeby.alchemyapi.io/v2/XXXXXXXXXXXXXXXXXXXXXXX", // <---- YOUR INFURA ID! (or it won't work)
       saveDeployments: true,
       tags: ["rinkeby"],
       //    url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/eth/rinkeby", // <---- YOUR MORALIS ID! (not limited to infura)
@@ -317,6 +317,24 @@ module.exports = {
   },
   namedAccounts: {
     empty: {
+      default: "0x0000000000000000000000000000000000000000",
+    },
+    androolloyd: {
+      default: "0x86d3ee9ff0983bc33b93cc8983371a500f873446",
+    },
+    tekka: {
+      default: "0x0000000000000000000000000000000000000000",
+    },
+    ehjc: {
+      default: "0x0000000000000000000000000000000000000000",
+    },
+    greenbergz: {
+      default: "0x0000000000000000000000000000000000000000",
+    },
+    rohamanus: {
+      default: "0x0000000000000000000000000000000000000000",
+    },
+    grutte: {
       default: "0x0000000000000000000000000000000000000000",
     },
     deployer: {

@@ -30,7 +30,6 @@ const { getNamedAccounts, deployments, ethers } = hre;
   );
   const avVADER = await deployments.get("avVADER");
   const avUSDV = await deployments.get("avUSDV");
-  const avUSDV3Crv = await deployments.get("avUSDV3Crv");
   const initialAssets = [avVADER.address, avUSDV.address, USDV3Crv];
   await execute(
     // execute function call on contract
@@ -108,7 +107,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "Voter",
     { from: deployer, log: true },
     "createGauge",
-    ...[avUSDV3Crv.address]
+    ...[USDV3Crv]
   );
   console.log(USDV3CrvGaugeTxn);
 
@@ -118,34 +117,20 @@ const { getNamedAccounts, deployments, ethers } = hre;
 
       const GaugeArtifact = await deployments.getArtifact("Gauge");
       const BribeArtifact = await deployments.getArtifact("Bribe");
-      const avUSDV3CrvGauge = {
+      const gauge = {
         abi: GaugeArtifact.abi,
         address: gaugeAddress,
         transactionHash: USDV3CrvGaugeTxn.transactionHash,
         receipt: USDV3CrvGaugeTxn,
       };
-      await save("avUSDV3CrvGauge", avUSDV3CrvGauge);
-      const avUSDV3CrvBribe = {
+      await save("USDV3CrvGauge", gauge);
+      const bribe = {
         abi: BribeArtifact.abi,
         address: bribeAddress,
         transactionHash: USDV3CrvGaugeTxn.transactionHash,
         receipt: USDV3CrvGaugeTxn,
       };
-      await save("avUSDV3CrvBribe", avUSDV3CrvBribe);
+      await save("USDV3CrvBribe", bribe);
     }
   }
-
-  await execute(
-    // execute function call on contract
-    "Minter",
-    { from: deployer, log: true },
-    "initialize",
-    ...[
-      [], //veLock
-      [], //veLockAmount
-      [], //vesting lock
-      [], //vesting amount
-      ethers.BigNumber.from("100000000000000000000000000"),
-    ]
-  );
 })();

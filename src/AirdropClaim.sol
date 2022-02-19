@@ -52,8 +52,7 @@ contract AirdropClaim is Auth {
         // Set address to claimed
         hasClaimed[to] = true;
 
-        // push tokens into veAPHRA lock expiring at 2 years,
-
+        // push tokens into veAPHRA lock expiring after 2 years,
         //congrats on the responsibility
         _ve.create_lock_for(amount, AIRDROP_LOCK, to);
 

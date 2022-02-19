@@ -43,9 +43,9 @@ contract Vault is ERC20, Auth {
     /// @param _UNDERLYING The ERC20 compliant token the Vault should accept.
     constructor(ERC20 _UNDERLYING)
         ERC20(
-            // ex: Rari Dai Stablecoin Vault
+            // ex:Aphra Vader Vault
             string(abi.encodePacked("Aphra ", _UNDERLYING.name(), " Vault")),
-            // ex: rvDAI
+            // ex: avVader
             string(abi.encodePacked("av", _UNDERLYING.symbol())),
             // ex: 18
             _UNDERLYING.decimals()

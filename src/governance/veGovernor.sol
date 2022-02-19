@@ -1,23 +1,8 @@
 pragma solidity ^0.8.11;
 pragma experimental ABIEncoderV2;
 
-import {veAPHRA} from "./veAPHRA.sol";
-
-interface TimelockInterface {
-    function delay() external view returns (uint);
-
-    function GRACE_PERIOD() external view returns (uint);
-
-    function acceptAdmin() external;
-
-    function queuedTransactions(bytes32 hash) external view returns (bool);
-
-    function queueTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external returns (bytes32);
-
-    function cancelTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external;
-
-    function executeTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external payable returns (bytes memory);
-}
+import {veAPHRA} from "../veAPHRA.sol";
+import {Timelock} from "./Timelock.sol";
 
 contract veGovernor {
     /// @notice The name of this contract
@@ -38,13 +23,13 @@ contract veGovernor {
     /// @notice The duration of voting on a proposal, in blocks
     function votingPeriod() public pure returns (uint) {return 40320;} // ~1 days in blocks (assuming 15s blocks)
 
-    /// @notice The address of the Compound Protocol Timelock
-    TimelockInterface public timelock;
+    /// @notice The address of the APHRA Protocol Timelock
+    Timelock public timelock;
 
-    /// @notice The address of the Compound governance token
+    /// @notice The address of the veAPHRA token
     veAPHRA public ve;
 
-    /// @notice The address of the Governor Guardian
+    /// @notice The address of the veGovernor Guardian
     address public guardian;
 
     /// @notice The total number of proposals
@@ -145,9 +130,9 @@ contract veGovernor {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address ve_, address guardian_) {
-        timelock = TimelockInterface(timelock_);
-        ve = veAPHRA(ve_);
+    constructor(Timelock timelock_, veAPHRA ve_, address guardian_) {
+        timelock = timelock_;
+        ve = ve_;
         guardian = guardian_;
     }
     function propose(uint badgeId_, address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
