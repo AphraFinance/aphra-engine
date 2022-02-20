@@ -103,8 +103,9 @@ contract Minter is Auth {
             _token.transfer(initToken[i], initTokenAmounts[i]);
         }
 
-        //set airdrop
-        airdrop = address(initToken[initToken.length - 1]); //set to the last item in the initToken array as it is the airdrop
+        //set to the last item in the initToken array as it is the airdrop and we want to exclude the airdrops balance
+        // for supply emission calculations as it can only enter into ve when claimed
+        airdrop = address(initToken[initToken.length - 1]);
         initializer = address(0);
         active_period = (block.timestamp + week) / week * week;
     }

@@ -1,0 +1,645 @@
+{
+  "address": "0x7EDc3d43f4A0E30223226841BE67eFaEdDEF4342",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "VADERMINTER_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "GOVERNANCE_",
+          "type": "address"
+        },
+        {
+          "internalType": "contract Authority",
+          "name": "AUTHORITY_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "VADER_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "USDV_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "contract Authority",
+          "name": "newAuthority",
+          "type": "address"
+        }
+      ],
+      "name": "AuthorityUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "mintLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "burnLimit",
+              "type": "uint256"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct IVaderMinter.Limits",
+          "name": "previousLimits",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "mintLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "burnLimit",
+              "type": "uint256"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct IVaderMinter.Limits",
+          "name": "nextLimits",
+          "type": "tuple"
+        }
+      ],
+      "name": "DailyLimitsChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "previousPartnerMintCap",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "partnerMintCap",
+          "type": "uint256"
+        }
+      ],
+      "name": "PartnerMintCapChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "previousPartnercMintFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "partnerMintFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "PartnerMintFeeChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "previousPublicMintCap",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "publicMintCap",
+          "type": "uint256"
+        }
+      ],
+      "name": "PublicMintCapChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "previousPublicMintFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "publicMintFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "PublicMintFeeChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "partner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "mintLimit",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "burnLimit",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "WhitelistPartner",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "USDV",
+      "outputs": [
+        {
+          "internalType": "contract ERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "VADER",
+      "outputs": [
+        {
+          "internalType": "contract ERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "VADERMINTER",
+      "outputs": [
+        {
+          "internalType": "contract IVaderMinter",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "authority",
+      "outputs": [
+        {
+          "internalType": "contract Authority",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cycleBurns",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cycleMints",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cycleTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dailyLimits",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "mintLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "burnLimit",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IVaderMinter.Limits",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lbt",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "uAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "vMinOut",
+          "type": "uint256"
+        }
+      ],
+      "name": "partnerBurn",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "vAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "partner",
+          "type": "address"
+        }
+      ],
+      "name": "partnerLimits",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "mintLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "burnLimit",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IVaderMinter.Limits",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "vAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "uMinOut",
+          "type": "uint256"
+        }
+      ],
+      "name": "partnerMint",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "uAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract Authority",
+          "name": "newAuthority",
+          "type": "address"
+        }
+      ],
+      "name": "setAuthority",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "setOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "usdv",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+  "receipt": {
+    "to": null,
+    "from": "0x1594B6Fd7C346376E51C4Cf46525a9c57c5ea916",
+    "contractAddress": "0x7EDc3d43f4A0E30223226841BE67eFaEdDEF4342",
+    "transactionIndex": 40,
+    "gasUsed": "973773",
+    "logsBloom": "0x00000800000000000000000000000000008000000000000000000000000000000000000000000100000010000000010000100000000000001000000000200004000000400080000000200000000000000000000000000000000000000000000000000000000000000000000010008000000000000000000000000000000080000000000000000000400080000000000000000000000000000000040000000001020000000000000000000000000000000000000000000001000000000000000000000008000000002000001000000000200000000000000080080000000000000010000008090000020000000000040000000000000000000000000000000000",
+    "blockHash": "0x713c0954709378292cba66308fdd1eac0ff4feb79703416134901ce338c8780b",
+    "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+    "logs": [
+      {
+        "transactionIndex": 40,
+        "blockNumber": 14225629,
+        "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+        "address": "0x7EDc3d43f4A0E30223226841BE67eFaEdDEF4342",
+        "topics": [
+          "0x8292fce18fa69edf4db7b94ea2e58241df0ae57f97e0a6c9b29067028bf92d76",
+          "0x0000000000000000000000001594b6fd7c346376e51c4cf46525a9c57c5ea916",
+          "0x0000000000000000000000001594b6fd7c346376e51c4cf46525a9c57c5ea916"
+        ],
+        "data": "0x",
+        "logIndex": 68,
+        "blockHash": "0x713c0954709378292cba66308fdd1eac0ff4feb79703416134901ce338c8780b"
+      },
+      {
+        "transactionIndex": 40,
+        "blockNumber": 14225629,
+        "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+        "address": "0x7EDc3d43f4A0E30223226841BE67eFaEdDEF4342",
+        "topics": [
+          "0xa3396fd7f6e0a21b50e5089d2da70d5ac0a3bbbd1f617a93f134b76389980198",
+          "0x0000000000000000000000001594b6fd7c346376e51c4cf46525a9c57c5ea916",
+          "0x000000000000000000000000cbb46b017e8d785c107e97c56135894b3ead599c"
+        ],
+        "data": "0x",
+        "logIndex": 69,
+        "blockHash": "0x713c0954709378292cba66308fdd1eac0ff4feb79703416134901ce338c8780b"
+      },
+      {
+        "transactionIndex": 40,
+        "blockNumber": 14225629,
+        "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+        "address": "0x2602278EE1882889B946eb11DC0E810075650983",
+        "topics": [
+          "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+          "0x0000000000000000000000007edc3d43f4a0e30223226841be67efaeddef4342",
+          "0x00000000000000000000000000aadc47d91fd9cac3369e6045042f9f99216b98"
+        ],
+        "data": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "logIndex": 70,
+        "blockHash": "0x713c0954709378292cba66308fdd1eac0ff4feb79703416134901ce338c8780b"
+      },
+      {
+        "transactionIndex": 40,
+        "blockNumber": 14225629,
+        "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+        "address": "0x2602278EE1882889B946eb11DC0E810075650983",
+        "topics": [
+          "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+          "0x0000000000000000000000007edc3d43f4a0e30223226841be67efaeddef4342",
+          "0x000000000000000000000000ea3fb6f331735252e7bfb0b24b3b761301293dbe"
+        ],
+        "data": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "logIndex": 71,
+        "blockHash": "0x713c0954709378292cba66308fdd1eac0ff4feb79703416134901ce338c8780b"
+      },
+      {
+        "transactionIndex": 40,
+        "blockNumber": 14225629,
+        "transactionHash": "0x99ce5c5b184871b210951058daf6e36d9c096bc289bf7f0931266630d4279a4f",
+        "address": "0xea3Fb6f331735252E7Bfb0b24b3B761301293DBe",
+        "topics": [
+          "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+          "0x0000000000000000000000007edc3d43f4a0e30223226841be67efaeddef4342",
+          "0x00000000000000000000000000aadc47d91fd9cac3369e6045042f9f99216b98"
+        ],
+        "data": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "logIndex": 72,
+        "blockHash": "0x713c0954709378292cba66308fdd1eac0ff4feb79703416134901ce338c8780b"
+      }
+    ],
+    "blockNumber": 14225629,
+    "cumulativeGasUsed": "3714796",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x00aadC47d91fD9CaC3369E6045042f9F99216B98",
+    "0x1594B6Fd7C346376E51C4Cf46525a9c57c5ea916",
+    "0xcbb46b017e8d785C107e97c56135894b3eAD599C",
+    "0x2602278EE1882889B946eb11DC0E810075650983",
+    "0xea3Fb6f331735252E7Bfb0b24b3B761301293DBe"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "edd68036c391002ae2af5111886505d2",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"VADERMINTER_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"GOVERNANCE_\",\"type\":\"address\"},{\"internalType\":\"contract Authority\",\"name\":\"AUTHORITY_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"VADER_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"USDV_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"contract Authority\",\"name\":\"newAuthority\",\"type\":\"address\"}],\"name\":\"AuthorityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"mintLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burnLimit\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"struct IVaderMinter.Limits\",\"name\":\"previousLimits\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"mintLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burnLimit\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"struct IVaderMinter.Limits\",\"name\":\"nextLimits\",\"type\":\"tuple\"}],\"name\":\"DailyLimitsChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"previousPartnerMintCap\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"partnerMintCap\",\"type\":\"uint256\"}],\"name\":\"PartnerMintCapChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"previousPartnercMintFee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"partnerMintFee\",\"type\":\"uint256\"}],\"name\":\"PartnerMintFeeChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"previousPublicMintCap\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"publicMintCap\",\"type\":\"uint256\"}],\"name\":\"PublicMintCapChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"previousPublicMintFee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"publicMintFee\",\"type\":\"uint256\"}],\"name\":\"PublicMintFeeChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"partner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"mintLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"burnLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"WhitelistPartner\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"USDV\",\"outputs\":[{\"internalType\":\"contract ERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"VADER\",\"outputs\":[{\"internalType\":\"contract ERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"VADERMINTER\",\"outputs\":[{\"internalType\":\"contract IVaderMinter\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"authority\",\"outputs\":[{\"internalType\":\"contract Authority\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"cycleBurns\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"cycleMints\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"cycleTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dailyLimits\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"mintLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burnLimit\",\"type\":\"uint256\"}],\"internalType\":\"struct IVaderMinter.Limits\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lbt\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"uAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"vMinOut\",\"type\":\"uint256\"}],\"name\":\"partnerBurn\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"vAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"partner\",\"type\":\"address\"}],\"name\":\"partnerLimits\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"mintLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"burnLimit\",\"type\":\"uint256\"}],\"internalType\":\"struct IVaderMinter.Limits\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"vAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"uMinOut\",\"type\":\"uint256\"}],\"name\":\"partnerMint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"uAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract Authority\",\"name\":\"newAuthority\",\"type\":\"address\"}],\"name\":\"setAuthority\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"setOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"usdv\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"srcBuild/VaderGateway.sol\":\"VaderGateway\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@rari-capital/solmate/src/auth/Auth.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0-only\\npragma solidity >=0.8.0;\\n\\n/// @notice Provides a flexible and updatable auth pattern which is completely separate from application logic.\\n/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/auth/Auth.sol)\\n/// @author Modified from Dappsys (https://github.com/dapphub/ds-auth/blob/master/src/auth.sol)\\nabstract contract Auth {\\n    event OwnerUpdated(address indexed user, address indexed newOwner);\\n\\n    event AuthorityUpdated(address indexed user, Authority indexed newAuthority);\\n\\n    address public owner;\\n\\n    Authority public authority;\\n\\n    constructor(address _owner, Authority _authority) {\\n        owner = _owner;\\n        authority = _authority;\\n\\n        emit OwnerUpdated(msg.sender, _owner);\\n        emit AuthorityUpdated(msg.sender, _authority);\\n    }\\n\\n    modifier requiresAuth() {\\n        require(isAuthorized(msg.sender, msg.sig), \\\"UNAUTHORIZED\\\");\\n\\n        _;\\n    }\\n\\n    function isAuthorized(address user, bytes4 functionSig) internal view virtual returns (bool) {\\n        Authority auth = authority; // Memoizing authority saves us a warm SLOAD, around 100 gas.\\n\\n        // Checking if the caller is the owner only after calling the authority saves gas in most cases, but be\\n        // aware that this makes protected functions uncallable even to the owner if the authority is out of order.\\n        return (address(auth) != address(0) && auth.canCall(user, address(this), functionSig)) || user == owner;\\n    }\\n\\n    function setAuthority(Authority newAuthority) public virtual {\\n        // We check if the caller is the owner first because we want to ensure they can\\n        // always swap out the authority even if it's reverting or using up a lot of gas.\\n        require(msg.sender == owner || authority.canCall(msg.sender, address(this), msg.sig));\\n\\n        authority = newAuthority;\\n\\n        emit AuthorityUpdated(msg.sender, newAuthority);\\n    }\\n\\n    function setOwner(address newOwner) public virtual requiresAuth {\\n        owner = newOwner;\\n\\n        emit OwnerUpdated(msg.sender, newOwner);\\n    }\\n}\\n\\n/// @notice A generic interface for a contract which provides authorization data to an Auth instance.\\n/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/auth/Auth.sol)\\n/// @author Modified from Dappsys (https://github.com/dapphub/ds-auth/blob/master/src/auth.sol)\\ninterface Authority {\\n    function canCall(\\n        address user,\\n        address target,\\n        bytes4 functionSig\\n    ) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x45a3dedcffe229eb4393a1ac5233da3d332cddae4cf97fc44602614329c1f70a\",\"license\":\"AGPL-3.0-only\"},\"@rari-capital/solmate/src/tokens/ERC20.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0-only\\npragma solidity >=0.8.0;\\n\\n/// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.\\n/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC20.sol)\\n/// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)\\n/// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.\\nabstract contract ERC20 {\\n    /*///////////////////////////////////////////////////////////////\\n                                  EVENTS\\n    //////////////////////////////////////////////////////////////*/\\n\\n    event Transfer(address indexed from, address indexed to, uint256 amount);\\n\\n    event Approval(address indexed owner, address indexed spender, uint256 amount);\\n\\n    /*///////////////////////////////////////////////////////////////\\n                             METADATA STORAGE\\n    //////////////////////////////////////////////////////////////*/\\n\\n    string public name;\\n\\n    string public symbol;\\n\\n    uint8 public immutable decimals;\\n\\n    /*///////////////////////////////////////////////////////////////\\n                              ERC20 STORAGE\\n    //////////////////////////////////////////////////////////////*/\\n\\n    uint256 public totalSupply;\\n\\n    mapping(address => uint256) public balanceOf;\\n\\n    mapping(address => mapping(address => uint256)) public allowance;\\n\\n    /*///////////////////////////////////////////////////////////////\\n                             EIP-2612 STORAGE\\n    //////////////////////////////////////////////////////////////*/\\n\\n    bytes32 public constant PERMIT_TYPEHASH =\\n        keccak256(\\\"Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)\\\");\\n\\n    uint256 internal immutable INITIAL_CHAIN_ID;\\n\\n    bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;\\n\\n    mapping(address => uint256) public nonces;\\n\\n    /*///////////////////////////////////////////////////////////////\\n                               CONSTRUCTOR\\n    //////////////////////////////////////////////////////////////*/\\n\\n    constructor(\\n        string memory _name,\\n        string memory _symbol,\\n        uint8 _decimals\\n    ) {\\n        name = _name;\\n        symbol = _symbol;\\n        decimals = _decimals;\\n\\n        INITIAL_CHAIN_ID = block.chainid;\\n        INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();\\n    }\\n\\n    /*///////////////////////////////////////////////////////////////\\n                              ERC20 LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function approve(address spender, uint256 amount) public virtual returns (bool) {\\n        allowance[msg.sender][spender] = amount;\\n\\n        emit Approval(msg.sender, spender, amount);\\n\\n        return true;\\n    }\\n\\n    function transfer(address to, uint256 amount) public virtual returns (bool) {\\n        balanceOf[msg.sender] -= amount;\\n\\n        // Cannot overflow because the sum of all user\\n        // balances can't exceed the max uint256 value.\\n        unchecked {\\n            balanceOf[to] += amount;\\n        }\\n\\n        emit Transfer(msg.sender, to, amount);\\n\\n        return true;\\n    }\\n\\n    function transferFrom(\\n        address from,\\n        address to,\\n        uint256 amount\\n    ) public virtual returns (bool) {\\n        uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.\\n\\n        if (allowed != type(uint256).max) allowance[from][msg.sender] = allowed - amount;\\n\\n        balanceOf[from] -= amount;\\n\\n        // Cannot overflow because the sum of all user\\n        // balances can't exceed the max uint256 value.\\n        unchecked {\\n            balanceOf[to] += amount;\\n        }\\n\\n        emit Transfer(from, to, amount);\\n\\n        return true;\\n    }\\n\\n    /*///////////////////////////////////////////////////////////////\\n                              EIP-2612 LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function permit(\\n        address owner,\\n        address spender,\\n        uint256 value,\\n        uint256 deadline,\\n        uint8 v,\\n        bytes32 r,\\n        bytes32 s\\n    ) public virtual {\\n        require(deadline >= block.timestamp, \\\"PERMIT_DEADLINE_EXPIRED\\\");\\n\\n        // Unchecked because the only math done is incrementing\\n        // the owner's nonce which cannot realistically overflow.\\n        unchecked {\\n            bytes32 digest = keccak256(\\n                abi.encodePacked(\\n                    \\\"\\\\x19\\\\x01\\\",\\n                    DOMAIN_SEPARATOR(),\\n                    keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))\\n                )\\n            );\\n\\n            address recoveredAddress = ecrecover(digest, v, r, s);\\n\\n            require(recoveredAddress != address(0) && recoveredAddress == owner, \\\"INVALID_SIGNER\\\");\\n\\n            allowance[recoveredAddress][spender] = value;\\n        }\\n\\n        emit Approval(owner, spender, value);\\n    }\\n\\n    function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {\\n        return block.chainid == INITIAL_CHAIN_ID ? INITIAL_DOMAIN_SEPARATOR : computeDomainSeparator();\\n    }\\n\\n    function computeDomainSeparator() internal view virtual returns (bytes32) {\\n        return\\n            keccak256(\\n                abi.encode(\\n                    keccak256(\\\"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)\\\"),\\n                    keccak256(bytes(name)),\\n                    keccak256(\\\"1\\\"),\\n                    block.chainid,\\n                    address(this)\\n                )\\n            );\\n    }\\n\\n    /*///////////////////////////////////////////////////////////////\\n                       INTERNAL MINT/BURN LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function _mint(address to, uint256 amount) internal virtual {\\n        totalSupply += amount;\\n\\n        // Cannot overflow because the sum of all user\\n        // balances can't exceed the max uint256 value.\\n        unchecked {\\n            balanceOf[to] += amount;\\n        }\\n\\n        emit Transfer(address(0), to, amount);\\n    }\\n\\n    function _burn(address from, uint256 amount) internal virtual {\\n        balanceOf[from] -= amount;\\n\\n        // Cannot underflow because a user's balance\\n        // will never be larger than the total supply.\\n        unchecked {\\n            totalSupply -= amount;\\n        }\\n\\n        emit Transfer(from, address(0), amount);\\n    }\\n}\\n\",\"keccak256\":\"0x698cdbf614109fafc2bf00057b60715fa3aba9dad447c42f4f8b749ae16ce84f\",\"license\":\"AGPL-3.0-only\"},\"@rari-capital/solmate/src/utils/FixedPointMathLib.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0-only\\npragma solidity >=0.8.0;\\n\\n/// @notice Arithmetic library with operations for fixed-point numbers.\\n/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/FixedPointMathLib.sol)\\nlibrary FixedPointMathLib {\\n    /*///////////////////////////////////////////////////////////////\\n                            COMMON BASE UNITS\\n    //////////////////////////////////////////////////////////////*/\\n\\n    uint256 internal constant YAD = 1e8;\\n    uint256 internal constant WAD = 1e18;\\n    uint256 internal constant RAY = 1e27;\\n    uint256 internal constant RAD = 1e45;\\n\\n    /*///////////////////////////////////////////////////////////////\\n                         FIXED POINT OPERATIONS\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function fmul(\\n        uint256 x,\\n        uint256 y,\\n        uint256 baseUnit\\n    ) internal pure returns (uint256 z) {\\n        assembly {\\n            // Store x * y in z for now.\\n            z := mul(x, y)\\n\\n            // Equivalent to require(x == 0 || (x * y) / x == y)\\n            if iszero(or(iszero(x), eq(div(z, x), y))) {\\n                revert(0, 0)\\n            }\\n\\n            // If baseUnit is zero this will return zero instead of reverting.\\n            z := div(z, baseUnit)\\n        }\\n    }\\n\\n    function fdiv(\\n        uint256 x,\\n        uint256 y,\\n        uint256 baseUnit\\n    ) internal pure returns (uint256 z) {\\n        assembly {\\n            // Store x * baseUnit in z for now.\\n            z := mul(x, baseUnit)\\n\\n            // Equivalent to require(y != 0 && (x == 0 || (x * baseUnit) / x == baseUnit))\\n            if iszero(and(iszero(iszero(y)), or(iszero(x), eq(div(z, x), baseUnit)))) {\\n                revert(0, 0)\\n            }\\n\\n            // We ensure y is not zero above, so there is never division by zero here.\\n            z := div(z, y)\\n        }\\n    }\\n\\n    function fpow(\\n        uint256 x,\\n        uint256 n,\\n        uint256 baseUnit\\n    ) internal pure returns (uint256 z) {\\n        assembly {\\n            switch x\\n            case 0 {\\n                switch n\\n                case 0 {\\n                    // 0 ** 0 = 1\\n                    z := baseUnit\\n                }\\n                default {\\n                    // 0 ** n = 0\\n                    z := 0\\n                }\\n            }\\n            default {\\n                switch mod(n, 2)\\n                case 0 {\\n                    // If n is even, store baseUnit in z for now.\\n                    z := baseUnit\\n                }\\n                default {\\n                    // If n is odd, store x in z for now.\\n                    z := x\\n                }\\n\\n                // Shifting right by 1 is like dividing by 2.\\n                let half := shr(1, baseUnit)\\n\\n                for {\\n                    // Shift n right by 1 before looping to halve it.\\n                    n := shr(1, n)\\n                } n {\\n                    // Shift n right by 1 each iteration to halve it.\\n                    n := shr(1, n)\\n                } {\\n                    // Revert immediately if x ** 2 would overflow.\\n                    // Equivalent to iszero(eq(div(xx, x), x)) here.\\n                    if shr(128, x) {\\n                        revert(0, 0)\\n                    }\\n\\n                    // Store x squared.\\n                    let xx := mul(x, x)\\n\\n                    // Round to the nearest number.\\n                    let xxRound := add(xx, half)\\n\\n                    // Revert if xx + half overflowed.\\n                    if lt(xxRound, xx) {\\n                        revert(0, 0)\\n                    }\\n\\n                    // Set x to scaled xxRound.\\n                    x := div(xxRound, baseUnit)\\n\\n                    // If n is even:\\n                    if mod(n, 2) {\\n                        // Compute z * x.\\n                        let zx := mul(z, x)\\n\\n                        // If z * x overflowed:\\n                        if iszero(eq(div(zx, x), z)) {\\n                            // Revert if x is non-zero.\\n                            if iszero(iszero(x)) {\\n                                revert(0, 0)\\n                            }\\n                        }\\n\\n                        // Round to the nearest number.\\n                        let zxRound := add(zx, half)\\n\\n                        // Revert if zx + half overflowed.\\n                        if lt(zxRound, zx) {\\n                            revert(0, 0)\\n                        }\\n\\n                        // Return properly scaled zxRound.\\n                        z := div(zxRound, baseUnit)\\n                    }\\n                }\\n            }\\n        }\\n    }\\n\\n    /*///////////////////////////////////////////////////////////////\\n                        GENERAL NUMBER UTILITIES\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function sqrt(uint256 x) internal pure returns (uint256 z) {\\n        assembly {\\n            // Start off with z at 1.\\n            z := 1\\n\\n            // Used below to help find a nearby power of 2.\\n            let y := x\\n\\n            // Find the lowest power of 2 that is at least sqrt(x).\\n            if iszero(lt(y, 0x100000000000000000000000000000000)) {\\n                y := shr(128, y) // Like dividing by 2 ** 128.\\n                z := shl(64, z)\\n            }\\n            if iszero(lt(y, 0x10000000000000000)) {\\n                y := shr(64, y) // Like dividing by 2 ** 64.\\n                z := shl(32, z)\\n            }\\n            if iszero(lt(y, 0x100000000)) {\\n                y := shr(32, y) // Like dividing by 2 ** 32.\\n                z := shl(16, z)\\n            }\\n            if iszero(lt(y, 0x10000)) {\\n                y := shr(16, y) // Like dividing by 2 ** 16.\\n                z := shl(8, z)\\n            }\\n            if iszero(lt(y, 0x100)) {\\n                y := shr(8, y) // Like dividing by 2 ** 8.\\n                z := shl(4, z)\\n            }\\n            if iszero(lt(y, 0x10)) {\\n                y := shr(4, y) // Like dividing by 2 ** 4.\\n                z := shl(2, z)\\n            }\\n            if iszero(lt(y, 0x8)) {\\n                // Equivalent to 2 ** z.\\n                z := shl(1, z)\\n            }\\n\\n            // Shifting right by 1 is like dividing by 2.\\n            z := shr(1, add(z, div(x, z)))\\n            z := shr(1, add(z, div(x, z)))\\n            z := shr(1, add(z, div(x, z)))\\n            z := shr(1, add(z, div(x, z)))\\n            z := shr(1, add(z, div(x, z)))\\n            z := shr(1, add(z, div(x, z)))\\n            z := shr(1, add(z, div(x, z)))\\n\\n            // Compute a rounded down version of z.\\n            let zRoundDown := div(x, z)\\n\\n            // If zRoundDown is smaller, use it.\\n            if lt(zRoundDown, z) {\\n                z := zRoundDown\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xe29b3134301cc1281f61d2b79d98262c9bb7e7d71faa52cb7f7afb192b510c07\",\"license\":\"AGPL-3.0-only\"},\"@rari-capital/solmate/src/utils/SafeCastLib.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0-only\\npragma solidity >=0.8.0;\\n\\n/// @notice Safe unsigned integer casting library that reverts on overflow.\\n/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/SafeCastLib.sol)\\n/// @author Modified from OpenZeppelin (https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeCast.sol)\\nlibrary SafeCastLib {\\n    function safeCastTo248(uint256 x) internal pure returns (uint248 y) {\\n        require(x <= type(uint248).max);\\n\\n        y = uint248(x);\\n    }\\n\\n    function safeCastTo128(uint256 x) internal pure returns (uint128 y) {\\n        require(x <= type(uint128).max);\\n\\n        y = uint128(x);\\n    }\\n\\n    function safeCastTo96(uint256 x) internal pure returns (uint96 y) {\\n        require(x <= type(uint96).max);\\n\\n        y = uint96(x);\\n    }\\n\\n    function safeCastTo64(uint256 x) internal pure returns (uint64 y) {\\n        require(x <= type(uint64).max);\\n\\n        y = uint64(x);\\n    }\\n\\n    function safeCastTo32(uint256 x) internal pure returns (uint32 y) {\\n        require(x <= type(uint32).max);\\n\\n        y = uint32(x);\\n    }\\n}\\n\",\"keccak256\":\"0x4d6a75e263a7366389540e0f9065923f50b7fb8f171f99163a81fe93e4cf24a9\",\"license\":\"AGPL-3.0-only\"},\"@rari-capital/solmate/src/utils/SafeTransferLib.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0-only\\npragma solidity >=0.8.0;\\n\\nimport {ERC20} from \\\"../tokens/ERC20.sol\\\";\\n\\n/// @notice Safe ETH and ERC20 transfer library that gracefully handles missing return values.\\n/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/SafeTransferLib.sol)\\n/// @author Modified from Gnosis (https://github.com/gnosis/gp-v2-contracts/blob/main/src/contracts/libraries/GPv2SafeERC20.sol)\\n/// @dev Use with caution! Some functions in this library knowingly create dirty bits at the destination of the free memory pointer.\\nlibrary SafeTransferLib {\\n    /*///////////////////////////////////////////////////////////////\\n                            ETH OPERATIONS\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function safeTransferETH(address to, uint256 amount) internal {\\n        bool callStatus;\\n\\n        assembly {\\n            // Transfer the ETH and store if it succeeded or not.\\n            callStatus := call(gas(), to, amount, 0, 0, 0, 0)\\n        }\\n\\n        require(callStatus, \\\"ETH_TRANSFER_FAILED\\\");\\n    }\\n\\n    /*///////////////////////////////////////////////////////////////\\n                           ERC20 OPERATIONS\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function safeTransferFrom(\\n        ERC20 token,\\n        address from,\\n        address to,\\n        uint256 amount\\n    ) internal {\\n        bool callStatus;\\n\\n        assembly {\\n            // Get a pointer to some free memory.\\n            let freeMemoryPointer := mload(0x40)\\n\\n            // Write the abi-encoded calldata to memory piece by piece:\\n            mstore(freeMemoryPointer, 0x23b872dd00000000000000000000000000000000000000000000000000000000) // Begin with the function selector.\\n            mstore(add(freeMemoryPointer, 4), and(from, 0xffffffffffffffffffffffffffffffffffffffff)) // Mask and append the \\\"from\\\" argument.\\n            mstore(add(freeMemoryPointer, 36), and(to, 0xffffffffffffffffffffffffffffffffffffffff)) // Mask and append the \\\"to\\\" argument.\\n            mstore(add(freeMemoryPointer, 68), amount) // Finally append the \\\"amount\\\" argument. No mask as it's a full 32 byte value.\\n\\n            // Call the token and store if it succeeded or not.\\n            // We use 100 because the calldata length is 4 + 32 * 3.\\n            callStatus := call(gas(), token, 0, freeMemoryPointer, 100, 0, 0)\\n        }\\n\\n        require(didLastOptionalReturnCallSucceed(callStatus), \\\"TRANSFER_FROM_FAILED\\\");\\n    }\\n\\n    function safeTransfer(\\n        ERC20 token,\\n        address to,\\n        uint256 amount\\n    ) internal {\\n        bool callStatus;\\n\\n        assembly {\\n            // Get a pointer to some free memory.\\n            let freeMemoryPointer := mload(0x40)\\n\\n            // Write the abi-encoded calldata to memory piece by piece:\\n            mstore(freeMemoryPointer, 0xa9059cbb00000000000000000000000000000000000000000000000000000000) // Begin with the function selector.\\n            mstore(add(freeMemoryPointer, 4), and(to, 0xffffffffffffffffffffffffffffffffffffffff)) // Mask and append the \\\"to\\\" argument.\\n            mstore(add(freeMemoryPointer, 36), amount) // Finally append the \\\"amount\\\" argument. No mask as it's a full 32 byte value.\\n\\n            // Call the token and store if it succeeded or not.\\n            // We use 68 because the calldata length is 4 + 32 * 2.\\n            callStatus := call(gas(), token, 0, freeMemoryPointer, 68, 0, 0)\\n        }\\n\\n        require(didLastOptionalReturnCallSucceed(callStatus), \\\"TRANSFER_FAILED\\\");\\n    }\\n\\n    function safeApprove(\\n        ERC20 token,\\n        address to,\\n        uint256 amount\\n    ) internal {\\n        bool callStatus;\\n\\n        assembly {\\n            // Get a pointer to some free memory.\\n            let freeMemoryPointer := mload(0x40)\\n\\n            // Write the abi-encoded calldata to memory piece by piece:\\n            mstore(freeMemoryPointer, 0x095ea7b300000000000000000000000000000000000000000000000000000000) // Begin with the function selector.\\n            mstore(add(freeMemoryPointer, 4), and(to, 0xffffffffffffffffffffffffffffffffffffffff)) // Mask and append the \\\"to\\\" argument.\\n            mstore(add(freeMemoryPointer, 36), amount) // Finally append the \\\"amount\\\" argument. No mask as it's a full 32 byte value.\\n\\n            // Call the token and store if it succeeded or not.\\n            // We use 68 because the calldata length is 4 + 32 * 2.\\n            callStatus := call(gas(), token, 0, freeMemoryPointer, 68, 0, 0)\\n        }\\n\\n        require(didLastOptionalReturnCallSucceed(callStatus), \\\"APPROVE_FAILED\\\");\\n    }\\n\\n    /*///////////////////////////////////////////////////////////////\\n                         INTERNAL HELPER LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function didLastOptionalReturnCallSucceed(bool callStatus) private pure returns (bool success) {\\n        assembly {\\n            // Get how many bytes the call returned.\\n            let returnDataSize := returndatasize()\\n\\n            // If the call reverted:\\n            if iszero(callStatus) {\\n                // Copy the revert message into memory.\\n                returndatacopy(0, 0, returnDataSize)\\n\\n                // Revert with the same message.\\n                revert(0, returnDataSize)\\n            }\\n\\n            switch returnDataSize\\n            case 32 {\\n                // Copy the return data into memory.\\n                returndatacopy(0, 0, returnDataSize)\\n\\n                // Set success to whether it returned true.\\n                success := iszero(iszero(mload(0)))\\n            }\\n            case 0 {\\n                // There was no return data.\\n                success := 1\\n            }\\n            default {\\n                // It returned some malformed input.\\n                success := 0\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xcc39d0f5693925ea1e8c517f7cc24211a9899c83a57e62d806180cdb056b6b75\",\"license\":\"AGPL-3.0-only\"},\"srcBuild/VaderGateway.sol\":{\"content\":\"pragma solidity ^0.8.11;\\n\\nimport {ERC20} from \\\"@rari-capital/solmate/src/tokens/ERC20.sol\\\";\\nimport {Auth, Authority} from \\\"@rari-capital/solmate/src/auth/Auth.sol\\\";\\nimport {SafeTransferLib} from \\\"@rari-capital/solmate/src/utils/SafeTransferLib.sol\\\";\\nimport {SafeCastLib} from \\\"@rari-capital/solmate/src/utils/SafeCastLib.sol\\\";\\nimport {FixedPointMathLib} from \\\"@rari-capital/solmate/src/utils/FixedPointMathLib.sol\\\";\\nimport {IVaderMinter} from \\\"./interfaces/vader/IVaderMinter.sol\\\";\\n\\ncontract VaderGateway is Auth, IVaderMinter {\\n\\n    using SafeTransferLib for ERC20;\\n    using FixedPointMathLib for uint256;\\n    using SafeCastLib for uint256;\\n\\n    IVaderMinter public immutable VADERMINTER;\\n\\n    ERC20 public immutable VADER;\\n    ERC20 public immutable USDV;\\n\\n    constructor(\\n        address VADERMINTER_,\\n        address GOVERNANCE_,\\n        Authority AUTHORITY_,\\n        address VADER_,\\n        address USDV_\\n    ) Auth(GOVERNANCE_, Authority(AUTHORITY_))\\n    {\\n        VADERMINTER = IVaderMinter(VADERMINTER_);\\n        VADER = ERC20(VADER_);\\n        USDV = ERC20(USDV_);\\n\\n        //set approvals\\n        VADER.safeApprove(VADERMINTER_, type(uint256).max);\\n        VADER.safeApprove(address(USDV), type(uint256).max);\\n        USDV.safeApprove(VADERMINTER_, type(uint256).max);\\n    }\\n\\n\\n    function lbt() external view returns (address) {\\n        return VADERMINTER.lbt();\\n    }\\n\\n    // The 24 hour limits on USDV mints that are available for public minting and burning as well as the fee.\\n    function dailyLimits() external view returns (Limits memory) {\\n        return VADERMINTER.dailyLimits();\\n    }\\n\\n    // The current cycle end timestamp\\n    function cycleTimestamp() external view returns (uint) {\\n        return VADERMINTER.cycleTimestamp();\\n    }\\n\\n    // The current cycle cumulative mints\\n    function cycleMints() external view returns (uint) {\\n        return VADERMINTER.cycleMints();\\n    }\\n\\n    // The current cycle cumulative burns\\n    function cycleBurns() external view returns (uint){\\n        return VADERMINTER.cycleBurns();\\n    }\\n\\n    function partnerLimits(address partner) external view returns (Limits memory){\\n        return VADERMINTER.partnerLimits(partner);\\n    }\\n\\n    // USDV Contract for Mint / Burn Operations\\n    function usdv() external view returns (address) {\\n        return VADERMINTER.usdv();\\n    }\\n\\n    /*\\n     * @dev Partner mint function that receives Vader and mints USDV.\\n     * @param vAmount Vader amount to burn.\\n     * @returns uAmount in USDV, represents the USDV amount received from the mint.\\n     *\\n     * Requirements:\\n     * - Can only be called by whitelisted partners.\\n     **/\\n    function partnerMint(uint256 vAmount, uint256 uMinOut) external requiresAuth returns (uint256 uAmount) {\\n        VADER.transferFrom(msg.sender, address(this), vAmount);\\n\\n        uAmount = VADERMINTER.partnerMint(vAmount, uMinOut);\\n\\n        USDV.safeTransfer(msg.sender, uAmount);\\n    }\\n    /*\\n     * @dev Partner burn function that receives USDV and mints Vader.\\n     * @param uAmount USDV amount to burn.\\n     * @returns vAmount in Vader, represents the Vader amount received from the mint.\\n     *\\n     * Requirements:\\n     * - Can only be called by whitelisted partners.\\n     **/\\n    function partnerBurn(uint256 uAmount, uint256 vMinOut) external requiresAuth returns (uint256 vAmount) {\\n        USDV.transferFrom(msg.sender, address(this), uAmount);\\n        vAmount = VADERMINTER.partnerBurn(uAmount, vMinOut);\\n        VADER.safeTransfer(msg.sender, vAmount);\\n    }\\n\\n}\\n\",\"keccak256\":\"0x6ffd9b474778d645e1ba9aeb52eb1f3a822e40f197564cdbdc77514d21b9bcaa\"},\"srcBuild/interfaces/vader/IVaderMinter.sol\":{\"content\":\"pragma solidity ^0.8.11;\\n\\ninterface IVaderMinter {\\n    struct Limits {\\n        uint256 fee;\\n        uint256 mintLimit;\\n        uint256 burnLimit;\\n    }\\n\\n    event PublicMintCapChanged(\\n        uint256 previousPublicMintCap,\\n        uint256 publicMintCap\\n    );\\n\\n    event PublicMintFeeChanged(\\n        uint256 previousPublicMintFee,\\n        uint256 publicMintFee\\n    );\\n\\n    event PartnerMintCapChanged(\\n        uint256 previousPartnerMintCap,\\n        uint256 partnerMintCap\\n    );\\n\\n    event PartnerMintFeeChanged(\\n        uint256 previousPartnercMintFee,\\n        uint256 partnerMintFee\\n    );\\n\\n    event DailyLimitsChanged(Limits previousLimits, Limits nextLimits);\\n    event WhitelistPartner(\\n        address partner,\\n        uint256 mintLimit,\\n        uint256 burnLimit,\\n        uint256 fee\\n    );\\n\\n    function lbt() external view returns (address);\\n\\n    // The 24 hour limits on USDV mints that are available for public minting and burning as well as the fee.\\n    function dailyLimits() external view returns (Limits memory);\\n\\n    // The current cycle end timestamp\\n    function cycleTimestamp() external view returns (uint);\\n\\n    // The current cycle cumulative mints\\n    function cycleMints() external view returns (uint);\\n\\n    // The current cycle cumulative burns\\n    function cycleBurns() external view returns (uint);\\n\\n    function partnerLimits(address) external view returns (Limits memory);\\n\\n    // USDV Contract for Mint / Burn Operations\\n    function usdv() external view returns (address);\\n\\n    function partnerMint(uint256 vAmount, uint256 uAmountMinOut) external returns (uint256 uAmount);\\n\\n    function partnerBurn(uint256 uAmount, uint256 vAmountMinOut) external returns (uint256 vAmount);\\n}\\n\",\"keccak256\":\"0x81bb4f430197d0aa64c6db368138ed61fb71fa7cbe95def5937ae6b9757e6be5\"}},\"version\":1}",
+  "bytecode": "0x60e06040523480156200001157600080fd5b506040516200118138038062001181833981016040819052620000349162000248565b600080546001600160a01b03199081166001600160a01b0387811691821784556001805490931690871617909155604051869286929133917f8292fce18fa69edf4db7b94ea2e58241df0ae57f97e0a6c9b29067028bf92d7691a36040516001600160a01b0382169033907fa3396fd7f6e0a21b50e5089d2da70d5ac0a3bbbd1f617a93f134b7638998019890600090a350506001600160a01b0385811660805282811660a081905290821660c052620000fe90866000196200015d602090811b62000a9d17901c565b6200012960c05160001960a0516001600160a01b03166200015d60201b62000a9d179092919060201c565b620001528560001960c0516001600160a01b03166200015d60201b62000a9d179092919060201c565b5050505050620002c8565b600060405163095ea7b360e01b81526001600160a01b03841660048201528260248201526000806044836000895af191506200019b905081620001e3565b620001dd5760405162461bcd60e51b815260206004820152600e60248201526d1054141493d59157d1905253115160921b604482015260640160405180910390fd5b50505050565b60003d82620001f657806000803e806000fd5b80602081146200021157801562000223576000925062000228565b816000803e6000511515925062000228565b600192505b5050919050565b6001600160a01b03811681146200024557600080fd5b50565b600080600080600060a086880312156200026157600080fd5b85516200026e816200022f565b602087015190955062000281816200022f565b604087015190945062000294816200022f565b6060870151909350620002a7816200022f565b6080870151909250620002ba816200022f565b809150509295509295909350565b60805160a05160c051610e2e6200035360003960008181610254015281816106c5015261097001526000818161010a015281816107dc0152610859015260008181610163015281816103080152818161047b0152818161053e015281816105b30152818161061301528181610758015281816108ec015281816109bd0152610a410152610e2e6000f3fe608060405234801561001057600080fd5b50600436106101005760003560e01c80639420069c11610097578063bf7e214f11610066578063bf7e214f14610234578063e0d243e914610247578063e2c3b0461461024f578063ec4aad3a1461027657600080fd5b80639420069c146101fe578063a69ff94014610206578063b2ccb6981461020e578063bee0616d1461022157600080fd5b80637a9e5e4b116100d35780637a9e5e4b1461019b5780638036b483146101ae5780638387c510146101b65780638da5cb5b146101eb57600080fd5b8063016813151461010557806313af40351461014957806319bca8941461015e578063686d91e014610185575b600080fd5b61012c7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b61015c610157366004610c9d565b61027e565b005b61012c7f000000000000000000000000000000000000000000000000000000000000000081565b61018d610304565b604051908152602001610140565b61015c6101a9366004610c9d565b61038d565b61012c610477565b6101c96101c4366004610c9d565b6104fb565b6040805182518152602080840151908201529181015190820152606001610140565b60005461012c906001600160a01b031681565b61012c6105af565b61018d61060f565b61018d61021c366004610cc1565b61066f565b61018d61022f366004610cc1565b610803565b60015461012c906001600160a01b031681565b6101c9610997565b61012c7f000000000000000000000000000000000000000000000000000000000000000081565b61018d610a3d565b610294336000356001600160e01b031916610b1b565b6102b95760405162461bcd60e51b81526004016102b090610ce3565b60405180910390fd5b600080546001600160a01b0319166001600160a01b0383169081178255604051909133917f8292fce18fa69edf4db7b94ea2e58241df0ae57f97e0a6c9b29067028bf92d769190a350565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663686d91e06040518163ffffffff1660e01b8152600401602060405180830381865afa158015610364573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103889190610d09565b905090565b6000546001600160a01b0316331480610422575060015460405163b700961360e01b81526001600160a01b039091169063b7009613906103e190339030906001600160e01b03196000351690600401610d22565b602060405180830381865afa1580156103fe573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104229190610d4f565b61042b57600080fd5b600180546001600160a01b0319166001600160a01b03831690811790915560405133907fa3396fd7f6e0a21b50e5089d2da70d5ac0a3bbbd1f617a93f134b7638998019890600090a350565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316638036b4836040518163ffffffff1660e01b8152600401602060405180830381865afa1580156104d7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103889190610d71565b61051f60405180606001604052806000815260200160008152602001600081525090565b6040516308387c5160e41b81526001600160a01b0383811660048301527f00000000000000000000000000000000000000000000000000000000000000001690638387c51090602401606060405180830381865afa158015610585573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105a99190610d8e565b92915050565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316639420069c6040518163ffffffff1660e01b8152600401602060405180830381865afa1580156104d7573d6000803e3d6000fd5b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a69ff9406040518163ffffffff1660e01b8152600401602060405180830381865afa158015610364573d6000803e3d6000fd5b6000610687336000356001600160e01b031916610b1b565b6106a35760405162461bcd60e51b81526004016102b090610ce3565b6040516323b872dd60e01b8152336004820152306024820152604481018490527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906323b872dd906064016020604051808303816000875af1158015610716573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061073a9190610d4f565b5060405163165996d360e31b815260048101849052602481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063b2ccb698906044016020604051808303816000875af11580156107a9573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107cd9190610d09565b90506105a96001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000163383610bc5565b600061081b336000356001600160e01b031916610b1b565b6108375760405162461bcd60e51b81526004016102b090610ce3565b6040516323b872dd60e01b8152336004820152306024820152604481018490527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906323b872dd906064016020604051808303816000875af11580156108aa573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108ce9190610d4f565b5060405163bee0616d60e01b815260048101849052602481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063bee0616d906044016020604051808303816000875af115801561093d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109619190610d09565b90506105a96001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000163383610bc5565b6109bb60405180606001604052806000815260200160008152602001600081525090565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663e0d243e96040518163ffffffff1660e01b8152600401606060405180830381865afa158015610a19573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103889190610d8e565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663ec4aad3a6040518163ffffffff1660e01b8152600401602060405180830381865afa158015610364573d6000803e3d6000fd5b600060405163095ea7b360e01b81526001600160a01b03841660048201528260248201526000806044836000895af1915050610ad881610c3e565b610b155760405162461bcd60e51b815260206004820152600e60248201526d1054141493d59157d1905253115160921b60448201526064016102b0565b50505050565b6001546000906001600160a01b03168015801590610ba5575060405163b700961360e01b81526001600160a01b0382169063b700961390610b6490879030908890600401610d22565b602060405180830381865afa158015610b81573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ba59190610d4f565b80610bbd57506000546001600160a01b038581169116145b949350505050565b600060405163a9059cbb60e01b81526001600160a01b03841660048201528260248201526000806044836000895af1915050610c0081610c3e565b610b155760405162461bcd60e51b815260206004820152600f60248201526e1514905394d1915497d19052531151608a1b60448201526064016102b0565b60003d82610c5057806000803e806000fd5b8060208114610c68578015610c795760009250610c7e565b816000803e60005115159250610c7e565b600192505b5050919050565b6001600160a01b0381168114610c9a57600080fd5b50565b600060208284031215610caf57600080fd5b8135610cba81610c85565b9392505050565b60008060408385031215610cd457600080fd5b50508035926020909101359150565b6020808252600c908201526b15539055551213d49256915160a21b604082015260600190565b600060208284031215610d1b57600080fd5b5051919050565b6001600160a01b0393841681529190921660208201526001600160e01b0319909116604082015260600190565b600060208284031215610d6157600080fd5b81518015158114610cba57600080fd5b600060208284031215610d8357600080fd5b8151610cba81610c85565b600060608284031215610da057600080fd5b6040516060810181811067ffffffffffffffff82111715610dd157634e487b7160e01b600052604160045260246000fd5b8060405250825181526020830151602082015260408301516040820152809150509291505056fea2646970667358221220edd4a8c96ff09bf1a99b2a0ea0c77df723cf5df3fec4f75244a3a9f8fd33378064736f6c634300080b0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101005760003560e01c80639420069c11610097578063bf7e214f11610066578063bf7e214f14610234578063e0d243e914610247578063e2c3b0461461024f578063ec4aad3a1461027657600080fd5b80639420069c146101fe578063a69ff94014610206578063b2ccb6981461020e578063bee0616d1461022157600080fd5b80637a9e5e4b116100d35780637a9e5e4b1461019b5780638036b483146101ae5780638387c510146101b65780638da5cb5b146101eb57600080fd5b8063016813151461010557806313af40351461014957806319bca8941461015e578063686d91e014610185575b600080fd5b61012c7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b61015c610157366004610c9d565b61027e565b005b61012c7f000000000000000000000000000000000000000000000000000000000000000081565b61018d610304565b604051908152602001610140565b61015c6101a9366004610c9d565b61038d565b61012c610477565b6101c96101c4366004610c9d565b6104fb565b6040805182518152602080840151908201529181015190820152606001610140565b60005461012c906001600160a01b031681565b61012c6105af565b61018d61060f565b61018d61021c366004610cc1565b61066f565b61018d61022f366004610cc1565b610803565b60015461012c906001600160a01b031681565b6101c9610997565b61012c7f000000000000000000000000000000000000000000000000000000000000000081565b61018d610a3d565b610294336000356001600160e01b031916610b1b565b6102b95760405162461bcd60e51b81526004016102b090610ce3565b60405180910390fd5b600080546001600160a01b0319166001600160a01b0383169081178255604051909133917f8292fce18fa69edf4db7b94ea2e58241df0ae57f97e0a6c9b29067028bf92d769190a350565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663686d91e06040518163ffffffff1660e01b8152600401602060405180830381865afa158015610364573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103889190610d09565b905090565b6000546001600160a01b0316331480610422575060015460405163b700961360e01b81526001600160a01b039091169063b7009613906103e190339030906001600160e01b03196000351690600401610d22565b602060405180830381865afa1580156103fe573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104229190610d4f565b61042b57600080fd5b600180546001600160a01b0319166001600160a01b03831690811790915560405133907fa3396fd7f6e0a21b50e5089d2da70d5ac0a3bbbd1f617a93f134b7638998019890600090a350565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316638036b4836040518163ffffffff1660e01b8152600401602060405180830381865afa1580156104d7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103889190610d71565b61051f60405180606001604052806000815260200160008152602001600081525090565b6040516308387c5160e41b81526001600160a01b0383811660048301527f00000000000000000000000000000000000000000000000000000000000000001690638387c51090602401606060405180830381865afa158015610585573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105a99190610d8e565b92915050565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316639420069c6040518163ffffffff1660e01b8152600401602060405180830381865afa1580156104d7573d6000803e3d6000fd5b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a69ff9406040518163ffffffff1660e01b8152600401602060405180830381865afa158015610364573d6000803e3d6000fd5b6000610687336000356001600160e01b031916610b1b565b6106a35760405162461bcd60e51b81526004016102b090610ce3565b6040516323b872dd60e01b8152336004820152306024820152604481018490527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906323b872dd906064016020604051808303816000875af1158015610716573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061073a9190610d4f565b5060405163165996d360e31b815260048101849052602481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063b2ccb698906044016020604051808303816000875af11580156107a9573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107cd9190610d09565b90506105a96001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000163383610bc5565b600061081b336000356001600160e01b031916610b1b565b6108375760405162461bcd60e51b81526004016102b090610ce3565b6040516323b872dd60e01b8152336004820152306024820152604481018490527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906323b872dd906064016020604051808303816000875af11580156108aa573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108ce9190610d4f565b5060405163bee0616d60e01b815260048101849052602481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063bee0616d906044016020604051808303816000875af115801561093d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109619190610d09565b90506105a96001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000163383610bc5565b6109bb60405180606001604052806000815260200160008152602001600081525090565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663e0d243e96040518163ffffffff1660e01b8152600401606060405180830381865afa158015610a19573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103889190610d8e565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663ec4aad3a6040518163ffffffff1660e01b8152600401602060405180830381865afa158015610364573d6000803e3d6000fd5b600060405163095ea7b360e01b81526001600160a01b03841660048201528260248201526000806044836000895af1915050610ad881610c3e565b610b155760405162461bcd60e51b815260206004820152600e60248201526d1054141493d59157d1905253115160921b60448201526064016102b0565b50505050565b6001546000906001600160a01b03168015801590610ba5575060405163b700961360e01b81526001600160a01b0382169063b700961390610b6490879030908890600401610d22565b602060405180830381865afa158015610b81573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ba59190610d4f565b80610bbd57506000546001600160a01b038581169116145b949350505050565b600060405163a9059cbb60e01b81526001600160a01b03841660048201528260248201526000806044836000895af1915050610c0081610c3e565b610b155760405162461bcd60e51b815260206004820152600f60248201526e1514905394d1915497d19052531151608a1b60448201526064016102b0565b60003d82610c5057806000803e806000fd5b8060208114610c68578015610c795760009250610c7e565b816000803e60005115159250610c7e565b600192505b5050919050565b6001600160a01b0381168114610c9a57600080fd5b50565b600060208284031215610caf57600080fd5b8135610cba81610c85565b9392505050565b60008060408385031215610cd457600080fd5b50508035926020909101359150565b6020808252600c908201526b15539055551213d49256915160a21b604082015260600190565b600060208284031215610d1b57600080fd5b5051919050565b6001600160a01b0393841681529190921660208201526001600160e01b0319909116604082015260600190565b600060208284031215610d6157600080fd5b81518015158114610cba57600080fd5b600060208284031215610d8357600080fd5b8151610cba81610c85565b600060608284031215610da057600080fd5b6040516060810181811067ffffffffffffffff82111715610dd157634e487b7160e01b600052604160045260246000fd5b8060405250825181526020830151602082015260408301516040820152809150509291505056fea2646970667358221220edd4a8c96ff09bf1a99b2a0ea0c77df723cf5df3fec4f75244a3a9f8fd33378064736f6c634300080b0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 17,
+        "contract": "srcBuild/VaderGateway.sol:VaderGateway",
+        "label": "owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 20,
+        "contract": "srcBuild/VaderGateway.sol:VaderGateway",
+        "label": "authority",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(Authority)171"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(Authority)171": {
+        "encoding": "inplace",
+        "label": "contract Authority",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}

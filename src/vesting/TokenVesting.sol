@@ -27,9 +27,9 @@ interface IVestingFactory {
 contract TokenVesting is Auth {
     using SafeTransferLib for ERC20;
 
-    event ERC20Released(address indexed token, uint256 amount);
+    event ERC20Released(address indexed token, uint amount);
 
-    mapping(address => uint256) private _erc20Released;
+    mapping(address => uint) private _erc20Released;
     address private immutable _beneficiary;
     uint private immutable _start;
     uint private immutable _duration;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.11;
 import {Auth, Authority, ERC20, TokenVesting} from "./TokenVesting.sol";
 import {veAPHRA} from "../veAPHRA.sol";
@@ -46,7 +47,7 @@ contract TokenVestingFactory is Auth  {
         return address(_ve);
     }
 
-    function getVestingContract(address benefactor) external returns (address) {
+    function getVestingContract(address benefactor) external view returns (address) {
         return vestingContracts[benefactor];
     }
 }

@@ -27,7 +27,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 const defaultNetwork = "hardhat";
 
-const mainnetGwei = 70;
+const mainnetGwei = 60;
 
 function mnemonic() {
   try {

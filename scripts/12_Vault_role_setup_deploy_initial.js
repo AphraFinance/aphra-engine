@@ -204,12 +204,4 @@ const { getNamedAccounts, deployments, ethers } = hre;
     ...[USDVVaultAddress]
   );
   console.log("avUSDV Vault Initialized");
-
-  // await execute(
-  //   // execute function call on contract
-  //   "VaultInitializationModule",
-  //   { from: deployer, log: true },
-  //   "initializeVault",
-  //   ...[USDV3crvVaultAddress]
-  // );
 })();
