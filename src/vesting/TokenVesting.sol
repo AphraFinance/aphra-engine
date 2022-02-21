@@ -115,7 +115,7 @@ contract TokenVesting is Auth {
 
         if (!ve(IVestingFactory(owner).getVe()).isUnlocked()) {
             return 0;
-        } else if (timestamp > start() + duration()) {
+        } else if (timestamp >= start() + duration()) {
             return totalAllocation;
         } else {
             return (totalAllocation * (timestamp - start())) / duration();
