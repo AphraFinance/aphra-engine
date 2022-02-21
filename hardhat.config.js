@@ -323,19 +323,19 @@ module.exports = {
       default: "0x86d3ee9ff0983bc33b93cc8983371a500f873446",
     },
     tekka: {
-      default: "0x0000000000000000000000000000000000000000",
+      default: "0x2BB9Ad8ED667d6eDb0bf10dbBB0b2beed560bE41",
     },
     ehjc: {
-      default: "0x0000000000000000000000000000000000000000",
+      default: "0xf1afdD3257B0Cb73C234ca6f73B1B2316f551600",
     },
     greenbergz: {
-      default: "0x0000000000000000000000000000000000000000",
+      default: "0x0ABd85014e890eb3b30C4Eb7Da5DDd4548c3ddCD",
     },
-    rohamanus: {
-      default: "0x0000000000000000000000000000000000000000",
+    rohmanus: {
+      default: "0x9E66aAF8F9719AEE0C89e8F55485dF5591601F74",
     },
     grutte: {
-      default: "0x0000000000000000000000000000000000000000",
+      default: "0x187843b25ecd6039addDBb6D92DDF8219bfb94FD",
     },
     deployer: {
       default: 0, // here this will by default take the first account as deployer

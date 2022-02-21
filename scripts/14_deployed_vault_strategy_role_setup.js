@@ -10,6 +10,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const USDVOverPegStrategy = await getContract("USDVOverPegStrategy");
   const VaderGateway = await getContract("VaderGateway");
 
+  console.log("Setup Strategy User Role");
   //setup USDVOverPegStrategy role
   await execute(
     // execute function call on contract
@@ -18,6 +19,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "setUserRole",
     ...[USDVOverPegStrategy.address, ROLES.STRATEGY, true]
   );
+  console.log("Setup Strategy role Capabilities VaderGateway partnerMint");
   await execute(
     // execute function call on contract
     "MultiRolesAuthority",
@@ -25,6 +27,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "setRoleCapability",
     ...[ROLES.STRATEGY, VaderGateway.interface.getSighash("partnerMint"), true]
   );
+  console.log("Setup Strategy role Capabilities VaderGateway partnerBurn");
   await execute(
     // execute function call on contract
     "MultiRolesAuthority",
@@ -36,6 +39,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const avVADER = await getContract("avVADER");
   const avUSDV = await getContract("avUSDV");
 
+  console.log("Setup Vault user role");
   //setup avVADER role
   await execute(
     // execute function call on contract

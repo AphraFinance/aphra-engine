@@ -62,8 +62,8 @@ contract Voter is Auth {
 
     address public immutable _ve; // the ve token that governs these contracts
     address internal immutable base;
-    address internal listingLP;
-    address internal listingFeeAddr;
+    address internal listingLP; //deprecated before it even began
+    address internal listingFeeAddr; //deprecated before it even began
     address public immutable gaugefactory;
     address public immutable bribefactory;
     uint internal constant DURATION = 7 days; // rewards are released over 7 days

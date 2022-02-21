@@ -5,8 +5,6 @@ const { getNamedAccounts, deployments, ethers } = hre;
   const { execute, save } = deployments;
   const { deployer, USDV3Crv } = await getNamedAccounts();
   const Minter = await getContract("Minter");
-  const Voter = await getContract("Voter");
-
   await execute(
     // execute function call on contract
     "AphraToken",
@@ -16,21 +14,26 @@ const { getNamedAccounts, deployments, ethers } = hre;
   );
   await execute(
     // execute function call on contract
-    "veAPHRA",
-    { from: deployer, log: true },
-    "setVoter",
-    ...[Voter.address]
-  );
-  await execute(
-    // execute function call on contract
     "ve_dist",
     { from: deployer, log: true },
     "setDepositor",
     ...[Minter.address]
   );
+  const Voter = await getContract("Voter");
+
+  await execute(
+    // execute function call on contract
+    "veAPHRA",
+    { from: deployer, log: true },
+    "setVoter",
+    ...[Voter.address]
+  );
+
   const avVADER = await deployments.get("avVADER");
   const avUSDV = await deployments.get("avUSDV");
   const initialAssets = [avVADER.address, avUSDV.address, USDV3Crv];
+  console.log("Initializing Voter");
+
   await execute(
     // execute function call on contract
     "Voter",
@@ -38,6 +41,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "initialize",
     ...[initialAssets, Minter.address]
   );
+  console.log("Initializing Voter: Done");
 
   const avVADERGaugeTXN = await execute(
     // execute function call on contract
@@ -46,7 +50,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "createGauge",
     ...[avVADER.address]
   );
-  console.log(avVADERGaugeTXN);
+  console.log("Create avVADER Gauge/Bribe", avVADERGaugeTXN);
   for (let log of avVADERGaugeTXN.events) {
     if (log.event && log.event === "GaugeCreated") {
       const [gaugeAddress, creator, bribeAddress, asset] = log.args;
@@ -77,7 +81,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "createGauge",
     ...[avUSDV.address]
   );
-  console.log(avUSDVGaugeTxn);
+  console.log("Create avUSDV Gauge/Bribe", avUSDVGaugeTxn);
 
   for (let log of avUSDVGaugeTxn.events) {
     if (log.event && log.event === "GaugeCreated") {
@@ -109,7 +113,8 @@ const { getNamedAccounts, deployments, ethers } = hre;
     "createGauge",
     ...[USDV3Crv]
   );
-  console.log(USDV3CrvGaugeTxn);
+
+  console.log("Create USDV3CRV Gauge/Bribe", USDV3CrvGaugeTxn);
 
   for (let log of USDV3CrvGaugeTxn.events) {
     if (log.event && log.event === "GaugeCreated") {
