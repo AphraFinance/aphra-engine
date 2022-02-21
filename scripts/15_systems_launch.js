@@ -13,6 +13,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     grutte,
   } = await getNamedAccounts();
 
+  const Minter = await ethers.getContract("Minter");
   const AirdropClaim = await ethers.getContract("AirdropClaim");
 
   const DAO_ALLOC = ethers.utils.parseEther("38500000"); //30M
