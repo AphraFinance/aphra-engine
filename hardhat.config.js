@@ -323,7 +323,7 @@ module.exports = {
       default: "0x86d3ee9ff0983bc33b93cc8983371a500f873446",
     },
     tekka: {
-      default: "0x0000000000000000000000000000000000000000",
+      default: "0x2BB9Ad8ED667d6eDb0bf10dbBB0b2beed560bE41",
     },
     ehjc: {
       default: "0x0000000000000000000000000000000000000000",
