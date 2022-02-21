@@ -12,9 +12,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const ve = await deployments.get("veAPHRA");
   const airdropClaim = await deploy("AirdropClaim", {
     from: deployer,
-    args: [deployer, AIRDROP_MERKLE_ROOT, ve.address],
+    args: [
+      deployer,
+      AIRDROP_MERKLE_ROOT,
+      "0xf8fBff4918a9D96925Ef8695978fbA347df57276",
+    ],
     log: true,
   });
 };
 module.exports.tags = ["AirdropClaim"];
-module.exports.dependencies = ["veAPHRA"];
