@@ -481,11 +481,6 @@ contract Gauge {
             require(tokenIds[msg.sender] == tokenId);
         } else {
             tokenId = tokenIds[msg.sender];
-
-            //if no token id and ve is not unlocked, then setup lock for 8 weeks
-            if (tokenId == 0 && !ve(_ve).isUnlocked()) {
-                tokenId = ve(_ve).create_lock_for(0, DURATION * 8, msg.sender);
-            }
         }
 
         uint _derivedBalance = derivedBalances[msg.sender];
