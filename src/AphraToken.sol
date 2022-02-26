@@ -3,7 +3,7 @@ pragma solidity ^0.8.11;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-contract AphraToken is ERC20("Aphra Finance DAO", "APHRA", 18) {
+contract AphraToken is ERC20("Aphra Finance", "APHRA", 18) {
 
 
     error NotMinter();

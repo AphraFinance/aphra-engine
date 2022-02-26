@@ -4,7 +4,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
 (async () => {
   const { getContract } = ethers;
   const { execute, save } = deployments;
-  const { deployer, USDV3Crv } = await getNamedAccounts();
+  const { deployer, USDV3Crv, xvader } = await getNamedAccounts();
   const Minter = await getContract("Minter");
 
   let answer = prompt("Execute veAPHRA setDepositor: (y/n/exit) ");
@@ -35,10 +35,10 @@ const { getNamedAccounts, deployments, ethers } = hre;
   } else if (answer === "exit") {
     process.exit(1);
   }
-
   const avVADER = await deployments.get("avVADER");
   const avUSDV = await deployments.get("avUSDV");
-  const initialAssets = [avVADER.address, avUSDV.address, USDV3Crv];
+  const initialAssets = [avVADER.address, avUSDV.address, xvader];
+
   answer = prompt("Execute Voter initialize: (y/n/exit) ");
 
   if (answer === "y") {
@@ -158,6 +158,43 @@ const { getNamedAccounts, deployments, ethers } = hre;
           receipt: USDV3CrvGaugeTxn,
         };
         await save("USDV3CrvBribe", bribe);
+      }
+    }
+  } else if (answer === "exit") {
+    process.exit(1);
+  }
+
+  answer = prompt("Execute xVader Gauge/Bribe: (y/n/exit) ");
+
+  if (answer === "y") {
+    const gaugeTxn = await execute(
+      // execute function call on contract
+      "Voter",
+      { from: deployer, log: true },
+      "createGauge",
+      ...[xvader]
+    );
+
+    for (let log of gaugeTxn.events) {
+      if (log.event && log.event === "GaugeCreated") {
+        const [gaugeAddress, creator, bribeAddress, asset] = log.args;
+
+        const GaugeArtifact = await deployments.getArtifact("Gauge");
+        const BribeArtifact = await deployments.getArtifact("Bribe");
+        const gauge = {
+          abi: GaugeArtifact.abi,
+          address: gaugeAddress,
+          transactionHash: gaugeTxn.transactionHash,
+          receipt: gaugeTxn,
+        };
+        await save("xVADERGauge", gauge);
+        const bribe = {
+          abi: BribeArtifact.abi,
+          address: bribeAddress,
+          transactionHash: gaugeTxn.transactionHash,
+          receipt: gaugeTxn,
+        };
+        await save("xVADERBribe", bribe);
       }
     }
   } else if (answer === "exit") {

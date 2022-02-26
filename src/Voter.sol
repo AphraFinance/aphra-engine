@@ -62,8 +62,8 @@ contract Voter is Auth {
 
     address public immutable _ve; // the ve token that governs these contracts
     address internal immutable base;
-    address internal listingLP; //deprecated before it even began
-    address internal listingFeeAddr; //deprecated before it even began
+    address internal listingLP;
+    address internal listingFeeAddr;
     address public immutable gaugefactory;
     address public immutable bribefactory;
     uint internal constant DURATION = 7 days; // rewards are released over 7 days
@@ -124,6 +124,11 @@ contract Voter is Auth {
             _whitelist(_tokens[i]);
         }
         minter = _minter;
+    }
+
+    function migrateMinter(address newMinter_) external {
+        require(msg.sender == minter);
+        minter = newMinter_;
     }
 
     function setListingFeeAddress(address listingFeeAddress_) external requiresAuth {
@@ -237,7 +242,7 @@ contract Voter is Auth {
     function whitelist(address _token) external {
         require(openListing, "not open for general listing");
 
-        _safeTransferFrom(listingLP, owner, minter, listing_fee());
+        _safeTransferFrom(listingLP, msg.sender, owner, listing_fee());
 
         _whitelist(_token);
     }

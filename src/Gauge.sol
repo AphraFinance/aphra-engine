@@ -111,12 +111,13 @@ contract Gauge {
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
-    constructor(address _stake, address _bribe, address  __ve, address _voter) {
+    constructor(address _stake, address _bribe, address __ve, address _voter) {
         stake = _stake;
         bribe = _bribe;
         _ve = __ve;
         voter = _voter;
         depositsOpen = true;
+        _safeApprove(ve(__ve).token(), __ve, type(uint).max);
     }
 
     modifier whenDepositsOpen() {
@@ -307,8 +308,9 @@ contract Gauge {
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
             if (_reward > 0) {
+                //setup gauges to send you veAPHRA while token is unlocked
               if (ve(_ve).isUnlocked()) {
-                  _safeTransfer(tokens[i], account, _reward); //setup gauges to send you veAPHRA while token is unlocked
+                  _safeTransfer(tokens[i], account, _reward);
               } else {
                   uint tokenId = tokenIds[msg.sender];
 
@@ -567,23 +569,6 @@ contract Gauge {
 
         emit NotifyReward(msg.sender, token, amount);
     }
-
-    // Safe if transfer function, just in case if rounding error causes pool to not have enough APHRAs.
-//    function _claimAndLockVe(address _to, uint256 _amount) internal {
-//
-//        uint256 depositAmount = _amount;
-//        //
-//        if (_amount > aphraToken.balanceOf(address(this))) {
-//            depositAmount = aphraToken.balanceOf(address(this));
-//        }
-//
-//        //check to see if a the receiving user has an lock.
-//        if (activeBadge[_to] != uint(0) && _ve.ownerOf(activeBadge[_to]) == _to) {
-//            _ve.deposit_for(activeBadge[_to], depositAmount);
-//        } else {
-//            activeBadge[_to] = _ve.create_lock_for(depositAmount, DURATION, _to);
-//        }
-//    }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0);

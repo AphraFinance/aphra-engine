@@ -7,7 +7,7 @@ const addressBook = require("./aphraAddressConfig");
 // require("@tenderly/hardhat-tenderly");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
-require("@tenderly/hardhat-tenderly");
+// require("@tenderly/hardhat-tenderly");
 require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
@@ -27,7 +27,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 const defaultNetwork = "hardhat";
 
-const mainnetGwei = 130;
+const mainnetGwei = 50;
 
 function mnemonic() {
   try {
@@ -56,6 +56,23 @@ module.exports = {
     coinmarketcap: process.env.COINMARKETCAP || null,
   },
 
+  zksolc: {
+    version: "0.1.0",
+    compilerSource: "docker",
+    settings: {
+      optimizer: {
+        enabled: true,
+      },
+      experimental: {
+        dockerImage: "matterlabs/zksolc",
+      },
+    },
+  },
+  zkSyncDeploy: {
+    zkSyncNetwork: "https://zksync2-testnet.zksync.dev",
+    ethNetwork: "goerli",
+  },
+
   tenderly: {
     project: "",
     username: "androolloyd",
@@ -71,6 +88,7 @@ module.exports = {
     hardhat: {
       chainId: 1,
       forking: {
+        // url: "https://eth-mainnet.alchemyapi.io/v2/K3OwSQSaGH_ol2Kpv4eZZP_npFld9wib", // <---- YOUR INFURA ID! (or it won't work)
         url: "http://erigon.dappnode:8545",
       },
       accounts: {
@@ -332,7 +350,7 @@ module.exports = {
       default: "0x0ABd85014e890eb3b30C4Eb7Da5DDd4548c3ddCD",
     },
     rohmanus: {
-      default: "0x9E66aAF8F9719AEE0C89e8F55485dF5591601F74",
+      default: "0x0ed609C9acb9699D362c986fEdEED9C6DD1396d0",
     },
     grutte: {
       default: "0x187843b25ecd6039addDBb6D92DDF8219bfb94FD",
@@ -669,7 +687,6 @@ task("send", "Send ETH")
         taskArgs.amount ? taskArgs.amount : "0",
         "ether"
       ).toHexString(),
-      nonce: 3,
       gasPrice: parseUnits(
         taskArgs.gasPrice ? taskArgs.gasPrice : "140",
         "gwei"

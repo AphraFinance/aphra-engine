@@ -18,7 +18,7 @@ const { getNamedAccounts, deployments, ethers } = hre;
     await execute(
       // execute function call on contract
       "MultiRolesAuthority",
-      { nonce: 32, from: deployer, log: true },
+      { from: deployer, log: true },
       "setUserRole",
       ...[USDVOverPegStrategy.address, ROLES.STRATEGY, true]
     );

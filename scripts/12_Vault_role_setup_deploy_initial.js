@@ -1,6 +1,7 @@
 const { USDV_ADDR, VADER_ADDR, ROLES, POOL } = require("../aphraAddressConfig");
 const hre = require("hardhat");
 const { getNamedAccounts, deployments, ethers } = hre;
+
 (async () => {
   const { execute, read, save } = deployments;
   const { getContract } = ethers;
