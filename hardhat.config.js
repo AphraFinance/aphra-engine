@@ -10,6 +10,7 @@ require("hardhat-gas-reporter");
 // require("@tenderly/hardhat-tenderly");
 require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-etherscan");
+const prompt = require("prompt-sync")();
 
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
@@ -27,7 +28,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 const defaultNetwork = "hardhat";
 
-const mainnetGwei = 50;
+const mainnetGwei = 25;
 
 function mnemonic() {
   try {
@@ -660,6 +661,110 @@ function send(signer, txparams) {
     // checkForReceipt(2, params, transactionHash, resolve)
   });
 }
+
+task("whitelistAuth", "whitelist asset")
+  .addParam("asset", "avName of asset")
+  .setAction(async (taskArgs, { network, ethers, deployments }) => {
+    const { execute, read, save } = deployments;
+    const { deployer, guardian } = await getNamedAccounts();
+    let answer = prompt(`Execute Whitelist ${taskArgs.asset}: (y/n/exit) `);
+
+    if (answer === "y") {
+      const vaultDeployReceipt = await execute(
+        // execute function call on contract
+        "Voter",
+        { from: guardian, log: true },
+        "whitelistAsAuth",
+        ...[taskArgs.asset]
+      );
+    }
+  });
+
+task("deployVault", "deploy Vault/Gauge/Bribe")
+  .addParam("asset", "address of asset to configure")
+  .addParam("symbol", "symbol of asset to configure")
+  .setAction(async (taskArgs, { network, ethers, deployments }) => {
+    const { execute, read, save } = deployments;
+    const { deployer } = await getNamedAccounts();
+    if (!taskArgs || !(taskArgs.asset && taskArgs.symbol))
+      return process.exit(1);
+    const { asset, symbol } = taskArgs;
+
+    let answer = prompt(`Execute Deploy ${symbol} Vault: (y/n/exit) `);
+
+    if (answer === "y") {
+      const vaultDeployReceipt = await execute(
+        // execute function call on contract
+        "VaultFactory",
+        { from: deployer, log: true },
+        "deployVault",
+        ...[asset]
+      );
+
+      const newVaultAddress = await read(
+        "VaultFactory",
+        { from: deployer, log: true },
+        "getVaultFromUnderlying",
+        ...[asset]
+      );
+
+      const VaultArtifact = await deployments.getArtifact("Vault");
+      const vaultDeployment = {
+        abi: VaultArtifact.abi,
+        address: newVaultAddress,
+        transactionHash: vaultDeployReceipt.transactionHash,
+        receipt: newVaultAddress,
+      };
+      await save(`av${symbol}`, vaultDeployment);
+    } else if (answer === "exit") {
+      process.exit(1);
+    }
+    answer = prompt(`Execute Deploy ${symbol} Gauge/Bribe: (y/n/exit) `);
+
+    if (answer === "y") {
+      const newVaultAddress = await read(
+        "VaultFactory",
+        { from: deployer, log: true },
+        "getVaultFromUnderlying",
+        ...[asset]
+      );
+      const gaugeTxn = await execute(
+        // execute function call on contract
+        "Voter",
+        { from: deployer, log: true },
+        "createGauge",
+        ...[newVaultAddress]
+      );
+      for (let log of gaugeTxn.events) {
+        if (log.event && log.event === "GaugeCreated") {
+          const [gaugeAddress, creator, bribeAddress, asset] = log.args;
+
+          const GaugeArtifact = await deployments.getArtifact("Gauge");
+          const BribeArtifact = await deployments.getArtifact("Bribe");
+
+          const gauge = {
+            abi: GaugeArtifact.abi,
+            address: gaugeAddress,
+            transactionHash: gaugeTxn.transactionHash,
+            receipt: gaugeTxn,
+          };
+
+          await save(`av${symbol}Gauge`, gauge);
+
+          const bribe = {
+            abi: BribeArtifact.abi,
+            address: bribeAddress,
+            transactionHash: gaugeTxn.transactionHash,
+            receipt: gaugeTxn,
+          };
+
+          await save(`av${symbol}Bribe`, bribe);
+        }
+      }
+    } else if (answer === "exit") {
+      process.exit(1);
+    }
+  });
 
 task("send", "Send ETH")
   .addParam("from", "From address or account index")

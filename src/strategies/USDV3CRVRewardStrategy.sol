@@ -8,8 +8,10 @@ import {FixedPointMathLib} from "../FixedPointMathLib.sol";
 import {ERC20Strategy} from "../interfaces/Strategy.sol";
 import {Gauge} from "../Gauge.sol";
 import {Bribe} from "../Bribe.sol";
+import {Vault} from "../Vault.sol";
 
 interface IRewards {
+    function rewardsToken() external view returns (address);
     function exit() external;
     function claimReward() external;
     function stake(uint256 amount) external;
@@ -30,8 +32,8 @@ contract USDV3CRVRewardStrategy is Auth, ERC20("USDV3CRVRewardStrategy", "aUSDV3
 
     IRewards public immutable REWARDS;
 
-    Gauge gauge;
-    Bribe bribe;
+    Gauge public gauge;
+    Bribe public bribe;
 
     uint harvestCost = 80;
     uint harvestBase = 100;
@@ -49,7 +51,6 @@ contract USDV3CRVRewardStrategy is Auth, ERC20("USDV3CRVRewardStrategy", "aUSDV3
         REWARDS = IRewards(REWARDS_);
         bribe = Bribe(BRIBE_);
         gauge = Gauge(GAUGE_);
-
         UNDERLYING.safeApprove(REWARDS_, type(uint256).max);
     }
 
@@ -126,18 +127,25 @@ contract USDV3CRVRewardStrategy is Auth, ERC20("USDV3CRVRewardStrategy", "aUSDV3
     }
 
 
-    function harvestRewards(address token) external {
-        require(token != address(UNDERLYING), "can't payout the deposit token");
+    function harvestRewards() external {
+        //get rewards
         REWARDS.claimReward();
+        ERC20 rewardToken = ERC20(REWARDS.rewardsToken());
+        //calc treasuryDeposit
+        uint treasuryDeposit = rewardToken.balanceOf(address(this)) * harvestCost / harvestBase;
+        //transfer to owner(treasury)
+        rewardToken.transfer(owner, treasuryDeposit);
 
-        uint treasuryDeposit = ERC20(token).balanceOf(address(this)) * harvestCost / harvestBase;
-        ERC20(token).transfer(owner, treasuryDeposit);
-        uint gaugeDeposit = (ERC20(token).balanceOf(address(this)) - treasuryDeposit) / 2;
-        ERC20(token).safeApprove(address(gauge), gaugeDeposit);
-        gauge.notifyRewardAmount(token, gaugeDeposit);
-        uint bribeDeposit = Math.max(gaugeDeposit, ERC20(token).balanceOf(address(this)));
+        //calc gauge deposit
+        uint gaugeDeposit = (rewardToken.balanceOf(address(this)) - treasuryDeposit) / 2;
 
-        ERC20(token).safeApprove(address(bribe), bribeDeposit);
-        bribe.notifyRewardAmount(token, bribeDeposit);
+        //notify gauge
+        rewardToken.safeApprove(address(gauge), gaugeDeposit);
+        gauge.notifyRewardAmount(address(rewardToken), gaugeDeposit);
+        //calc bribe deposit
+        uint bribeDeposit = Math.max(gaugeDeposit, rewardToken.balanceOf(address(this)));
+        //notify bribe
+        rewardToken.safeApprove(address(bribe), bribeDeposit);
+        bribe.notifyRewardAmount(address(rewardToken), bribeDeposit);
     }
 }
