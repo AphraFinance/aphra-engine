@@ -137,7 +137,7 @@ contract USDV3CRVRewardStrategy is Auth, ERC20("USDV3CRVRewardStrategy", "aUSDV3
         rewardToken.transfer(owner, treasuryDeposit);
 
         //calc gauge deposit
-        uint gaugeDeposit = (rewardToken.balanceOf(address(this)) - treasuryDeposit) / 2;
+        uint gaugeDeposit = rewardToken.balanceOf(address(this)) / 2;
 
         //notify gauge
         rewardToken.safeApprove(address(gauge), gaugeDeposit);
