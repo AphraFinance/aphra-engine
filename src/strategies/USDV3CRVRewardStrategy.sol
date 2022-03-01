@@ -1,13 +1,11 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "solmate/auth/Auth.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
-import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 import {FixedPointMathLib} from "../FixedPointMathLib.sol";
 import {ERC20Strategy} from "../interfaces/Strategy.sol";
-import {Gauge} from "../Gauge.sol";
-import {Bribe} from "../Bribe.sol";
 import {Vault} from "../Vault.sol";
 
 interface IRewards {
@@ -26,37 +24,31 @@ library Math {
     }
 }
 
-contract USDV3CRVRewardStrategy is Auth, ERC20("USDV3CRVRewardStrategy", "aUSDV3CRVRewardStrategy", 18), ERC20Strategy {
+import {Gauge, Bribe, StrategyBaseV1} from "./StrategyBaseV1.sol";
+
+contract USDV3CRVRewardStrategy is StrategyBaseV1 {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
     IRewards public immutable REWARDS;
 
-    Gauge public gauge;
-    Bribe public bribe;
-
-    uint harvestCost = 80;
-    uint harvestBase = 100;
-
     constructor(
         ERC20 UNDERLYING_,
         address GOVERNANCE_,
         Authority AUTHORITY_,
-        address REWARDS_,
-        address GAUGE_,
-        address BRIBE_
-    ) Auth(GOVERNANCE_, AUTHORITY_) { //set authority to something that enables operators for aphra
+        IRewards REWARDS_,
+        Gauge GAUGE_,
+        Bribe BRIBE_
+    ) Auth(GOVERNANCE_, AUTHORITY_)
+    ERC20("USDV3CRVRewardStrategy", "aUSDV3CRVRewardStrategy", 18) {
         UNDERLYING = UNDERLYING_; //vader
         BASE_UNIT = 10e18;
-        REWARDS = IRewards(REWARDS_);
-        bribe = Bribe(BRIBE_);
-        gauge = Gauge(GAUGE_);
-        UNDERLYING.safeApprove(REWARDS_, type(uint256).max);
-    }
-
-    function setGaugeBribe(Gauge newGauge_, Bribe newBribe_) external requiresAuth {
-        bribe = newBribe_;
-        gauge = newGauge_;
+        REWARDS = REWARDS_;
+        BRIBE = BRIBE_;
+        GAUGE = GAUGE_;
+        UNDERLYING.safeApprove(address(REWARDS_), type(uint256).max);
+        bribeRate = 10; //10% to bribe
+        gaugeRate = 10; //10% to gauge
     }
 
     function isCEther() external pure override returns (bool) {
@@ -130,22 +122,15 @@ contract USDV3CRVRewardStrategy is Auth, ERC20("USDV3CRVRewardStrategy", "aUSDV3
     function harvestRewards() external {
         //get rewards
         REWARDS.claimReward();
+
         ERC20 rewardToken = ERC20(REWARDS.rewardsToken());
+
+        uint harvest = rewardToken.balanceOf(address(this));
+        uint bribePayment = _payBribe(rewardToken, harvest);
+        uint gaugePayment = _payGauge(rewardToken, harvest);
         //calc treasuryDeposit
-        uint treasuryDeposit = rewardToken.balanceOf(address(this)) * harvestCost / harvestBase;
+        uint treasuryDeposit = harvest - bribePayment - gaugePayment;
         //transfer to owner(treasury)
         rewardToken.transfer(owner, treasuryDeposit);
-
-        //calc gauge deposit
-        uint gaugeDeposit = (rewardToken.balanceOf(address(this)) - treasuryDeposit) / 2;
-
-        //notify gauge
-        rewardToken.safeApprove(address(gauge), gaugeDeposit);
-        gauge.notifyRewardAmount(address(rewardToken), gaugeDeposit);
-        //calc bribe deposit
-        uint bribeDeposit = Math.max(gaugeDeposit, rewardToken.balanceOf(address(this)));
-        //notify bribe
-        rewardToken.safeApprove(address(bribe), bribeDeposit);
-        bribe.notifyRewardAmount(address(rewardToken), bribeDeposit);
     }
 }

@@ -20,7 +20,8 @@ import {ICurve} from "../interfaces/StrategyInterfaces.sol";
 import {Vault} from "../Vault.sol";
 import {VaultFactory} from "../VaultFactory.sol";
 import "./console.sol";
-
+import {Gauge} from "../Gauge.sol";
+import {Bribe} from "../Bribe.sol";
 
 interface Vm {
     // Set block.timestamp (newTimestamp)
@@ -132,6 +133,7 @@ contract IntegrationTest is DSTestPlus {
             address(usdv)
         );
 
+        Bribe bribe = Bribe(0x19d6a0FD78e34A1a25E9EdBD6e572c9eC19Be20B);
         strategy1 = new USDVOverPegStrategy(
             underlying,
             GOVERNANCE,
@@ -140,7 +142,8 @@ contract IntegrationTest is DSTestPlus {
             XVADER,
             address(vaderGateway),
             UNIROUTER,
-            WETH
+            WETH,
+            bribe
         );
 
         //acquire vader for the test harness
@@ -165,7 +168,7 @@ contract IntegrationTest is DSTestPlus {
 
         printPeg();
 
-        ICurve(POOL).exchange_underlying(1, int128(0), 500_000e18, uint(1));
+        ICurve(POOL).exchange_underlying(1, int128(0), 3_000_000e18, uint(1));
 
         printPeg();
     }
@@ -250,7 +253,7 @@ contract IntegrationTest is DSTestPlus {
         multiRolesAuthority.setUserRole(address(vault), 3, true);
         multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
 
-        uint256 treasury = 1_000_000e18;
+        uint256 treasury = 42_000_000e18;
 
         underlying.approve(address(vault), type(uint256).max);
         vault.deposit(treasury);
@@ -267,7 +270,7 @@ contract IntegrationTest is DSTestPlus {
 
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
-        uint256 hitAmount = 80_000e18;
+        uint256 hitAmount = 16_000_000e18;
         startMeasuringGas("strategy hit");
         strategy1.hit(hitAmount, int128(1), new address[](0));
         stopMeasuringGas();

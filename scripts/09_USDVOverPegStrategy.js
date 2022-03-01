@@ -10,24 +10,26 @@ const {
 
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
-  const { deployer, vader, weth, USDV3Crv, xvader, unirouter } =
+  const { deployer, vader, weth, USDV3Crv, xvader, unirouter, guardian } =
     await getNamedAccounts();
   const multiRolesAuthority = await deployments.get("MultiRolesAuthority");
   const vaderGateway = await deployments.get("VaderGateway");
+  const avUSDVBribe = await deployments.get("avUSDVBribe");
   await deploy("USDVOverPegStrategy", {
     from: deployer,
     args: [
       vader,
-      deployer,
+      guardian,
       multiRolesAuthority.address,
       USDV3Crv,
       xvader,
       vaderGateway.address,
       unirouter,
       weth,
+      avUSDVBribe.address,
     ],
     log: true,
   });
 };
 module.exports.tags = ["USDVOverPegStrategy"];
-module.exports.dependencies = ["VaderGateway", "MultiRolesAuthority"];
+// module.exports.dependencies = ["MultiRolesAuthority"];

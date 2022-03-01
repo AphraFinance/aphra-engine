@@ -27,18 +27,18 @@ import {Voter} from "../Voter.sol";
 import {AphraToken} from "../AphraToken.sol";
 import {AirdropClaim} from "../AirdropClaim.sol";
 import "./console.sol";
-enum ROLES {
-    GOVERNANCE,
-    VAULT_CONFIG,
-    VAULT_INIT_MODULE,
-    VAULT,
-    STRATEGY,
-    GAUGE,
-    BRIBE,
-    VOTER,
-    VE,
-    VE_DIST
-}
+    enum ROLES {
+        GOVERNANCE,
+        VAULT_CONFIG,
+        VAULT_INIT_MODULE,
+        VAULT,
+        STRATEGY,
+        GAUGE,
+        BRIBE,
+        VOTER,
+        VE,
+        VE_DIST
+    }
 
 
 contract DeployTest is DSTestPlus {
@@ -74,6 +74,7 @@ contract DeployTest is DSTestPlus {
     Voter voter;
     Minter minter;
     AirdropClaim airdropClaim;
+
     function setUp() public {
 
         multiRolesAuthority = new MultiRolesAuthority(
@@ -120,7 +121,7 @@ contract DeployTest is DSTestPlus {
         //create airdrop
         airdropClaim = new AirdropClaim(
             GOVERNANCE,
-                0xd0aa6a4e5b4e13462921d7518eebdb7b297a7877d6cfe078b0c318827392fb55, //alice test key
+            0xd0aa6a4e5b4e13462921d7518eebdb7b297a7877d6cfe078b0c318827392fb55, //alice test key
             address(Ve)
         );
 
@@ -136,6 +137,7 @@ contract DeployTest is DSTestPlus {
             address(vader),
             address(usdv)
         );
+        Bribe bribe = Bribe(0x19d6a0FD78e34A1a25E9EdBD6e572c9eC19Be20B);
 
         strategy1 = new USDVOverPegStrategy(
             vader,
@@ -145,9 +147,9 @@ contract DeployTest is DSTestPlus {
             XVADER,
             address(vaderGateway),
             UNIROUTER,
-            WETH
+            WETH,
+            bribe
         );
-
         setupRolesCapabilities();
 
         Ve.setVoter(address(voter));
@@ -168,7 +170,6 @@ contract DeployTest is DSTestPlus {
     }
 
 
-
     function setupRolesCapabilities() internal {
         hevm.startPrank(
             GOVERNANCE, GOVERNANCE
@@ -186,7 +187,9 @@ contract DeployTest is DSTestPlus {
         multiRolesAuthority.setRoleCapability(uint8(ROLES.VAULT_INIT_MODULE), Vault.initialize.selector, true);
         hevm.stopPrank();
     }
+
     address ALICE = address(0x185a4dc360CE69bDCceE33b3784B0282f7961aea);
+
     function testInitialize() public {
 
         address[] memory initDepositAssets = new address[](2);
@@ -218,7 +221,8 @@ contract DeployTest is DSTestPlus {
         giveTokens(address(vader), uint(100000e18), address(ALICE));
 
         hevm.startPrank(address(ALICE), address(ALICE));
-        Gauge newGauge = Gauge(voter.createGauge(address(vader))); //avVADER
+        Gauge newGauge = Gauge(voter.createGauge(address(vader)));
+        //avVADER
 
         vader.approve(address(newGauge), type(uint).max);
 

@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-import {ERC20} from "solmate/tokens/ERC20.sol";
-import {Auth, Authority} from "solmate/auth/Auth.sol";
-import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
-import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
+import {Bribe, ERC20, SafeTransferLib, StrategyBaseV1, Auth, Authority} from "./StrategyBaseV1.sol";
 import {FixedPointMathLib} from "../FixedPointMathLib.sol";
 import {ERC20Strategy} from "../interfaces/Strategy.sol";
 import {VaderGateway, IVaderMinter} from "../VaderGateway.sol";
-import {IERC20, IUniswap, IXVader, ICurve} from "../interfaces/StrategyInterfaces.sol";
+import {IUniswap, IXVader, ICurve} from "../interfaces/StrategyInterfaces.sol";
 
-contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPegStrategy", 18), ERC20Strategy {
+contract USDVOverPegStrategy is StrategyBaseV1 {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
@@ -20,10 +17,11 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     ERC20 public constant USDV = ERC20(address(0xea3Fb6f331735252E7Bfb0b24b3B761301293DBe));
 
     ERC20 public immutable WETH;
-    ICurve public immutable POOL;
-    IUniswap public immutable UNISWAP;
     IXVader public immutable XVADER;
+    IUniswap public immutable UNISWAP;
     IVaderMinter public immutable VADERGATEWAY;
+    ICurve public immutable POOL;
+
 
     constructor(
         ERC20 UNDERLYING_,
@@ -33,23 +31,28 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         address XVADER_,
         address VADERGATEWAY_,
         address UNIROUTER_,
-        address WETH_
-    ) Auth(GOVERNANCE_, AUTHORITY_) { //set authority to something that enables operators for aphra
-        UNDERLYING = UNDERLYING_; //vader
+        address WETH_,
+        Bribe BRIBE_
+    )
+    Auth(GOVERNANCE_, AUTHORITY_)
+    ERC20("USDVOverPegStrategy", "aUSDVOverPegStrategy", 18) {
+        UNDERLYING = UNDERLYING_;
         BASE_UNIT = 10e18;
-
+        BRIBE = BRIBE_;
+        bribeRate = 30;
         POOL = ICurve(POOL_);
         XVADER = IXVader(XVADER_);
 
-        VADERGATEWAY = IVaderMinter(VADERGATEWAY_); // our partner minter
+        VADERGATEWAY = IVaderMinter(VADERGATEWAY_);
         UNISWAP = IUniswap(UNIROUTER_);
         WETH = ERC20(WETH_);
 
-        USDV.safeApprove(POOL_, type(uint256).max); //set unlimited approval to the pool for usdv
+        USDV.safeApprove(POOL_, type(uint256).max);
         DAI.safeApprove(UNIROUTER_, type(uint256).max);
         USDC.safeApprove(UNIROUTER_, type(uint256).max);
         USDT.safeApprove(UNIROUTER_, type(uint256).max);
-        WETH.safeApprove(UNIROUTER_, type(uint256).max); //prob not needed
+        WETH.safeApprove(UNIROUTER_, type(uint256).max);
+        //prob not needed
         UNDERLYING.safeApprove(XVADER_, type(uint256).max);
         UNDERLYING.safeApprove(VADERGATEWAY_, type(uint256).max);
     }
@@ -59,16 +62,16 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
     ///////////////////////////////////////////////////////////// */
 
 
-    function hit(uint256 vAmount_, int128 exitCoin_, address[] memory pathToVader_) external requiresAuth () {
+    function hit(uint256 vAmount_, int128 exitCoin_, address[] memory pathToUnderlying_) external requiresAuth {
         _unstakeUnderlying(vAmount_);
         uint uAmount = VADERGATEWAY.partnerMint(UNDERLYING.balanceOf(address(this)), uint(1));
-        uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToVader_);
-        _stakeUnderlying(vAmount);
+        uint vAmount = _swapUSDVToVader(uAmount, exitCoin_, pathToUnderlying_);
         require(vAmount > vAmount_, "Failed to arb for profit");
     unchecked {
-        require( POOL.balances(1) * 1e3 / (POOL.balances(0)) >= 1e3, "peg must be at or above 1");
+        require(POOL.balances(1) * 1e3 / (POOL.balances(0)) >= 1e3, "peg must be at or above 1");
     }
-
+        uint bribePaid = _payBribe(UNDERLYING, vAmount - vAmount_);
+        _stakeUnderlying((vAmount - bribePaid));
     }
 
     function isCEther() external pure override returns (bool) {
@@ -127,7 +130,8 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         XVADER.enter(vAmount);
     }
 
-    function _computeStakedSharesForUnderlying(uint vAmount) internal view returns(uint256) {
+
+    function _computeStakedSharesForUnderlying(uint vAmount) internal view returns (uint256) {
         return (vAmount * XVADER.totalSupply()) / UNDERLYING.balanceOf(address(XVADER));
     }
 
@@ -148,11 +152,12 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         POOL.exchange_underlying(0, exitCoin_, uAmount_, uint(1));
 
         address[] memory path;
-        if(path_.length == 0) {
+        if (path_.length == 0) {
             path = new address[](3);
             path[0] = exitCoinAddr;
             path[1] = address(WETH);
-            path[2] = address(UNDERLYING); //vader eth pool has the best depth for vader
+            path[2] = address(UNDERLYING);
+            //vader eth pool has the best depth for vader
         } else {
             path = path_;
         }
@@ -180,10 +185,11 @@ contract USDVOverPegStrategy is Auth, ERC20("USDVOverPegStrategy", "aUSDVOverPeg
         if (cTokenSupply == 0) return BASE_UNIT;
         uint underlyingBalance;
         uint stakedBalance = _computeStakedUnderlying();
-        unchecked {
-            underlyingBalance = UNDERLYING.balanceOf(address(this)) + stakedBalance;
-        }
+    unchecked {
+        underlyingBalance = UNDERLYING.balanceOf(address(this)) + stakedBalance;
+    }
         return underlyingBalance.fdiv(cTokenSupply, BASE_UNIT);
     }
+
 }
 
