@@ -11,7 +11,7 @@ import {Vault} from "../Vault.sol";
 interface IRewards {
     function rewardsToken() external view returns (address);
     function exit() external;
-    function claimReward() external;
+    function getReward() external;
     function stake(uint256 amount) external;
     function withdraw(uint256 amount) external;
     function earned(address director) external view returns (uint256);
@@ -118,10 +118,9 @@ contract USDV3CRVRewardStrategy is StrategyBaseV1 {
         ERC20(token).safeTransfer(to, ERC20(token).balanceOf(address(this)));
     }
 
-
     function harvestRewards() external {
         //get rewards
-        REWARDS.claimReward();
+        REWARDS.getReward();
 
         ERC20 rewardToken = ERC20(REWARDS.rewardsToken());
 
