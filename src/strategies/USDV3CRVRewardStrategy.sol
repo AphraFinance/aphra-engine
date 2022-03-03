@@ -114,11 +114,7 @@ contract USDV3CRVRewardStrategy is StrategyBaseV1 {
         return underlyingBalance.fdiv(cTokenSupply, BASE_UNIT);
     }
 
-    function emergencyDevWithdraw(address token, address to) external requiresAuth {
-        ERC20(token).safeTransfer(to, ERC20(token).balanceOf(address(this)));
-    }
-
-    function harvestRewards() external {
+    function hit() external {
         //get rewards
         REWARDS.getReward();
 

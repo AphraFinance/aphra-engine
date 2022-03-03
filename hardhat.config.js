@@ -28,7 +28,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 const defaultNetwork = "hardhat";
 
-const mainnetGwei = 25;
+const mainnetGwei = 60;
 
 function mnemonic() {
   try {
@@ -719,6 +719,25 @@ task("deployVault", "deploy Vault/Gauge/Bribe")
     } else if (answer === "exit") {
       process.exit(1);
     }
+    answer = prompt(`Execute Initialize ${symbol} Vault: (y/n/exit) `);
+
+    if (answer === "y") {
+      const newVaultAddress = await read(
+        "VaultFactory",
+        { from: deployer, nonce: 93, log: true },
+        "getVaultFromUnderlying",
+        ...[asset]
+      );
+      await execute(
+        // execute function call on contract
+        "VaultInitializationModule",
+        { from: deployer, log: true },
+        "initializeVault",
+        ...[newVaultAddress]
+      );
+    } else if (answer === "exit") {
+      process.exit(1);
+    }
     answer = prompt(`Execute Deploy ${symbol} Gauge/Bribe: (y/n/exit) `);
 
     if (answer === "y") {
@@ -770,6 +789,7 @@ task("send", "Send ETH")
   .addParam("from", "From address or account index")
   .addOptionalParam("to", "To address or account index")
   .addOptionalParam("amount", "Amount to send in ether")
+  .addOptionalParam("nonce", "nonce")
   .addOptionalParam("data", "Data included in transaction")
   .addOptionalParam("gasprice", "Price you are willing to pay in gwei")
   .addOptionalParam("gaslimit", "Limit of how much gas to spend")
@@ -799,6 +819,10 @@ task("send", "Send ETH")
       gasLimit: taskArgs.gasLimit ? taskArgs.gasLimit : 24000,
       chainId: network.config.chainId,
     };
+
+    if (taskArgs && taskArgs.nonce) {
+      txRequest["nonce"] = parseInt(taskArgs.nonce);
+    }
 
     if (taskArgs.data !== undefined) {
       txRequest.data = taskArgs.data;

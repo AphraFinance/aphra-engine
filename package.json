@@ -14,7 +14,8 @@
     "hardhat-gas-reporter": "^1.0.7",
     "local": "^0.3.3",
     "prompt-sync": "^4.2.0",
-    "ramda": "^0.28.0"
+    "ramda": "^0.28.0",
+    "trycatch": "^1.5.21"
   },
   "scripts": {
     "deploy": "NODE_DEBUG=1 npx hardhat deploy"

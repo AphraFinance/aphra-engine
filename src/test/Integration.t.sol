@@ -2,6 +2,7 @@
 pragma solidity ^0.8.11;
 
 import {Authority} from "solmate/auth/Auth.sol";
+import {VaultGaugeDoorman} from "../modules/VaultGaugeDoorman.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 //import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -95,7 +96,7 @@ contract IntegrationTest is DSTestPlus {
     ERC20 usdv;
     USDVOverPegStrategy strategy1;
 
-    address constant GOVERNANCE = address(0x2101a22A8A6f2b60eF36013eFFCef56893cea983);
+    address constant GOVERNANCE = address(0x4d03Fb78BdA67a04f1bD6fDE5024759D8Ce8D866);
     address constant POOL = address(0x7abD51BbA7f9F6Ae87aC77e1eA1C5783adA56e5c);
     address constant FACTORY = address(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
     address constant XVADER = address(0x665ff8fAA06986Bd6f1802fA6C1D2e7d780a7369);
@@ -223,7 +224,18 @@ contract IntegrationTest is DSTestPlus {
         );
     }
 
+    function testDoorman() public {
+        startMeasuringGas("doorman deploy start");
+        VaultGaugeDoorman doorman = new VaultGaugeDoorman();
+        stopMeasuringGas();
 
+        hevm.startPrank(GOVERNANCE, GOVERNANCE);
+        startMeasuringGas("delegate start");
+        (bool success, bytes memory data) = address(doorman).delegatecall(
+            abi.encodeWithSelector(VaultGaugeDoorman.deployAndInitAsAuth.selector, address(0xDC59ac4FeFa32293A95889Dc396682858d52e5Db), address(0x460efd0b3be2Fe44856C3347AAc2A01e4C9eb09b), address(0xF1a8a05099F27CcF1b10718c89b8E557335CE4a4), address(0x89549e232AAcC4579F93B65735A9349038a47775))
+        );
+        stopMeasuringGas();
+    }
     function testIntegration() public {
         multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
         multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);

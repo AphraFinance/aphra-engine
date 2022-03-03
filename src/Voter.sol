@@ -135,6 +135,10 @@ contract Voter is Auth {
         listingFeeAddr = listingFeeAddress_;
     }
 
+    function setListingFeeLP(address listingFeeAddress_) external requiresAuth {
+        listingFeeAddr = listingFeeAddress_;
+    }
+
     function listing_fee() public view returns (uint) {
         return IListingFee(listingFeeAddr).listing_fee();
     }
