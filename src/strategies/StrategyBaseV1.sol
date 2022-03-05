@@ -10,6 +10,7 @@ import {Bribe} from "../Bribe.sol";
 import {Gauge} from "../Gauge.sol";
 
 abstract contract StrategyBaseV1 is Auth, ERC20, ERC20Strategy {
+
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
@@ -56,9 +57,10 @@ abstract contract StrategyBaseV1 is Auth, ERC20, ERC20Strategy {
         GAUGE.notifyRewardAmount(address(rewardToken), rAmount);
     }
 
+    function __emergencyExit() virtual external requiresAuth {}
+
     //requires governance to do this, in the event assets are stuck in the contract
     function emergencyWithdrawalToken(ERC20 token) virtual external requiresAuth {
-
         //send the tokens to the Vault's Owner so they can be given back to the depositors as
         //something has gone wrong with the strategy
         token.safeTransfer(owner, token.balanceOf(address(this)));

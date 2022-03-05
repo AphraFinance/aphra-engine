@@ -128,4 +128,9 @@ contract USDV3CRVRewardStrategy is StrategyBaseV1 {
         //transfer to owner(treasury)
         rewardToken.transfer(owner, treasuryDeposit);
     }
+
+    function __emergencyExit() external override requiresAuth {
+        REWARDS.getReward();
+        _unstakeUnderlying(_computeStakedUnderlying());
+    }
 }

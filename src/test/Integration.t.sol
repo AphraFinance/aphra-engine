@@ -2,7 +2,6 @@
 pragma solidity ^0.8.11;
 
 import {Authority} from "solmate/auth/Auth.sol";
-import {VaultGaugeDoorman} from "../modules/VaultGaugeDoorman.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 //import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -13,16 +12,17 @@ import {VaderGateway} from "../VaderGateway.sol";
 import {IVaderMinterExtended} from "../interfaces/vader/IVaderMinterExtended.sol";
 import {VaultInitializationModule} from "../modules/VaultInitializationModule.sol";
 import {VaultConfigurationModule} from "../modules/VaultConfigurationModule.sol";
-
+import {Gauge} from "../Gauge.sol";
+import {Bribe} from "../Bribe.sol";
 import {Strategy} from "../interfaces/Strategy.sol";
 
-import {ICurve} from "../interfaces/StrategyInterfaces.sol";
+//import {ICurve} from "../interfaces/StrategyInterfaces.sol";
 
 import {Vault} from "../Vault.sol";
 import {VaultFactory} from "../VaultFactory.sol";
 import "./console.sol";
-import {Gauge} from "../Gauge.sol";
-import {Bribe} from "../Bribe.sol";
+import {IRewards, USDV3CRVRewardStrategy} from "../strategies/USDV3CRVRewardStrategy.sol";
+
 
 interface Vm {
     // Set block.timestamp (newTimestamp)
@@ -81,6 +81,37 @@ interface Vm {
     function getCode(string calldata) external returns (bytes memory);
 }
 
+interface ICurve {
+    function get_virtual_price() external view returns (uint256);
+
+    function exchange(
+        int128 i,
+        int128 j,
+        uint256 dx,
+        uint256 min_dy
+    ) external;
+
+    function exchange_underlying(
+        int128 i,
+        int128 j,
+        uint256 dx,
+        uint256 min_dy
+    ) external;
+
+    function get_dy_underlying(int128 i, int128 j, uint256 dx) external view returns (uint256);
+
+    function add_liquidity(uint256[2] memory deposit, uint256 min) external returns (uint256);
+
+    function balances(uint256) external view returns (uint256);
+}
+
+interface IRewards2 {
+    function notifyRewardAmount(uint amount) external;
+
+    function earned(address account) external view returns (uint);
+
+    function setRewardsDuration(uint _rewardsDuration) external;
+}
 
 contract IntegrationTest is DSTestPlus {
     VaultFactory vaultFactory;
@@ -95,9 +126,13 @@ contract IntegrationTest is DSTestPlus {
 
     ERC20 usdv;
     USDVOverPegStrategy strategy1;
-
-    address constant GOVERNANCE = address(0x4d03Fb78BdA67a04f1bD6fDE5024759D8Ce8D866);
+    USDV3CRVRewardStrategy strategy2;
+    Bribe b;
+    Gauge g;
+    address constant GOVERNANCE = address(0x2101a22A8A6f2b60eF36013eFFCef56893cea983);
     address constant POOL = address(0x7abD51BbA7f9F6Ae87aC77e1eA1C5783adA56e5c);
+    address constant USDV = address(0xea3Fb6f331735252E7Bfb0b24b3B761301293DBe);
+    address constant VADER = address(0x2602278EE1882889B946eb11DC0E810075650983);
     address constant FACTORY = address(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
     address constant XVADER = address(0x665ff8fAA06986Bd6f1802fA6C1D2e7d780a7369);
     address constant UNIROUTER = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
@@ -134,7 +169,6 @@ contract IntegrationTest is DSTestPlus {
             address(usdv)
         );
 
-        Bribe bribe = Bribe(0x19d6a0FD78e34A1a25E9EdBD6e572c9eC19Be20B);
         strategy1 = new USDVOverPegStrategy(
             underlying,
             GOVERNANCE,
@@ -144,7 +178,20 @@ contract IntegrationTest is DSTestPlus {
             address(vaderGateway),
             UNIROUTER,
             WETH,
-            bribe
+            Bribe(address(0))
+        );
+
+        b = Bribe(0xA4d1aD4325eF52b76495d52B79402e91961931d5);
+        g = Gauge(0xEA7aD26d1B722518F7a9Af4E75eFAF8DfD042034);
+
+
+        strategy2 = new USDV3CRVRewardStrategy(
+            ERC20(POOL),
+            address(this),
+            multiRolesAuthority,
+            IRewards(0x2413e4594aadE7513AB6Dc43209D4C312cC35121),
+            g,
+            b
         );
 
         //acquire vader for the test harness
@@ -159,19 +206,33 @@ contract IntegrationTest is DSTestPlus {
         );
         hevm.stopPrank();
 
-        giveTokens(address(underlying), 100_000_000e18);
+//        giveTokens(address(this), address(underlying), 100_000_000e18);
 
         address dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
-        giveTokens(dai, 100_000_000e18);
+        giveTokens(address(this), dai, 100_000_000e18);
 
         ERC20(dai).approve(POOL, type(uint256).max);
 
         printPeg();
 
-        ICurve(POOL).exchange_underlying(1, int128(0), 3_000_000e18, uint(1));
+        ICurve(POOL).exchange_underlying(1, int128(0), 500_000e18, uint(1));
 
         printPeg();
+        multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestDelay.selector, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestWindow.selector, true);
+        multiRolesAuthority.setRoleCapability(0, Vault.setTargetFloatPercent.selector, true);
+
+        multiRolesAuthority.setUserRole(address(vaultInitializationModule), 1, true);
+        multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
+
+
+        vaultConfigurationModule.setDefaultFeePercent(0.1e18);
+        vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
+        vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
+        vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
     }
 
     function printPeg() internal {
@@ -183,26 +244,27 @@ contract IntegrationTest is DSTestPlus {
         console.log("peg/1e3", tpool_amount * 1e3 / usdv_amount);
     }
 
-    function giveTokens(address token, uint256 amount) internal {
+    function giveTokens(address recipient, address token, uint256 amount) internal {
         // Edge case - balance is already set for some reason
-        if (ERC20(token).balanceOf(address(this)) == amount) return;
+        if (ERC20(token).balanceOf(recipient) == amount) return;
 
         for (int256 i = 0; i < 100; i++) {
             // Scan the storage for the balance storage slot
-            bytes32 prevValue = hevm.load(token, keccak256(abi.encode(address(this), uint256(i))));
-            hevm.store(token, keccak256(abi.encode(address(this), uint256(i))), bytes32(amount));
-            if (ERC20(token).balanceOf(address(this)) == amount) {
+            bytes32 prevValue = hevm.load(token, keccak256(abi.encode(recipient, uint256(i))));
+            hevm.store(token, keccak256(abi.encode(recipient, uint256(i))), bytes32(amount));
+            if (ERC20(token).balanceOf(recipient) == amount) {
                 // Found it
                 return;
             } else {
                 // Keep going after restoring the original value
-                hevm.store(token, keccak256(abi.encode(address(this), uint256(i))), prevValue);
+                hevm.store(token, keccak256(abi.encode(recipient, uint256(i))), prevValue);
             }
         }
 
         // We have failed if we reach here
         assertTrue(false);
     }
+
 
     function _buyUnderlyingFromUniswap(uint256 amount) internal {
         address[] memory path = new address[](2);
@@ -224,33 +286,9 @@ contract IntegrationTest is DSTestPlus {
         );
     }
 
-    function testDoorman() public {
-        startMeasuringGas("doorman deploy start");
-        VaultGaugeDoorman doorman = new VaultGaugeDoorman();
-        stopMeasuringGas();
 
-        hevm.startPrank(GOVERNANCE, GOVERNANCE);
-        startMeasuringGas("delegate start");
-        (bool success, bytes memory data) = address(doorman).delegatecall(
-            abi.encodeWithSelector(VaultGaugeDoorman.deployAndInitAsAuth.selector, address(0xDC59ac4FeFa32293A95889Dc396682858d52e5Db), address(0x460efd0b3be2Fe44856C3347AAc2A01e4C9eb09b), address(0xF1a8a05099F27CcF1b10718c89b8E557335CE4a4), address(0x89549e232AAcC4579F93B65735A9349038a47775))
-        );
-        stopMeasuringGas();
-    }
     function testIntegration() public {
-        multiRolesAuthority.setUserRole(address(vaultConfigurationModule), 0, true);
-        multiRolesAuthority.setRoleCapability(0, Vault.setFeePercent.selector, true);
-        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestDelay.selector, true);
-        multiRolesAuthority.setRoleCapability(0, Vault.setHarvestWindow.selector, true);
-        multiRolesAuthority.setRoleCapability(0, Vault.setTargetFloatPercent.selector, true);
 
-        multiRolesAuthority.setUserRole(address(vaultInitializationModule), 1, true);
-        multiRolesAuthority.setRoleCapability(1, Vault.initialize.selector, true);
-
-
-        vaultConfigurationModule.setDefaultFeePercent(0.1e18);
-        vaultConfigurationModule.setDefaultHarvestDelay(6 hours);
-        vaultConfigurationModule.setDefaultHarvestWindow(5 minutes);
-        vaultConfigurationModule.setDefaultTargetFloatPercent(0.01e18);
 
         //deploy and initialize vault
         Vault vault = vaultFactory.deployVault(underlying);
@@ -265,7 +303,8 @@ contract IntegrationTest is DSTestPlus {
         multiRolesAuthority.setUserRole(address(vault), 3, true);
         multiRolesAuthority.setRoleCapability(3, strategy1.mint.selector, true);
 
-        uint256 treasury = 42_000_000e18;
+
+        uint256 treasury = 1_000_000e18;
 
         underlying.approve(address(vault), type(uint256).max);
         vault.deposit(treasury);
@@ -282,7 +321,7 @@ contract IntegrationTest is DSTestPlus {
 
         //peg arb swap to xvader
         hevm.startPrank(GOVERNANCE, GOVERNANCE);
-        uint256 hitAmount = 16_000_000e18;
+        uint256 hitAmount = 80_000e18;
         startMeasuringGas("strategy hit");
         strategy1.hit(hitAmount, int128(1), new address[](0));
         stopMeasuringGas();
@@ -300,4 +339,75 @@ contract IntegrationTest is DSTestPlus {
         //        vault.withdraw(1363636363636363636);
         //        assertEq(vault.balanceOf(address(this)), 0);
     }
+
+    function testIntegration2() public {
+
+        ERC20 pool = ERC20(POOL);
+        uint256 amt = 1_000_000e18;
+
+        Vault v2 = vaultFactory.deployVault(pool);
+        vaultInitializationModule.initializeVault(v2);
+        multiRolesAuthority.setUserRole(address(v2), 3, true);
+        multiRolesAuthority.setRoleCapability(3, strategy2.mint.selector, true);
+
+
+        giveTokens(address(this), USDV, amt);
+        address REWARDS = address(strategy2.REWARDS());
+
+        hevm.startPrank(address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9));
+        giveTokens(address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), VADER, amt * 2);
+        // ERC20(VADER).approve(REWARDS, type(uint256).max);
+
+        ERC20(VADER).transfer(REWARDS, amt * 2);
+        IRewards2(REWARDS).notifyRewardAmount(amt);
+        hevm.stopPrank();
+
+        uint256[2] memory liq = [amt, 0];
+
+        ERC20(USDV).approve(POOL, type(uint256).max);
+        uint256 crvAmt = ICurve(POOL).add_liquidity(liq, 0);
+        console.log("POOL BALANCE ADDRESS THIS");
+        console.log(ERC20(POOL).balanceOf(address(this))/1e18);
+        console.log("Treasury Balance: Vader");
+        console.log(ERC20(VADER).balanceOf(address(strategy2.owner()))/1e18);
+        ERC20(POOL).approve(address(v2), type(uint256).max);
+        console.logAddress(address(v2.UNDERLYING()));
+        v2.deposit(crvAmt);
+
+        v2.trustStrategy(strategy2);
+        v2.depositIntoStrategy(strategy2, crvAmt);
+        v2.pushToWithdrawalStack(strategy2);
+
+        //peg arb swap to xvader
+        hevm.warp(1646399561);
+
+        hevm.startPrank(address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9));
+        IRewards2(REWARDS).notifyRewardAmount(amt);
+        hevm.stopPrank();
+
+
+        hevm.warp(1646399561 + 7 * 24 * 3600);
+
+        uint256 earned = IRewards2(REWARDS).earned(address(strategy2));
+
+        console.log(earned);
+
+        strategy2.hit();
+
+        Strategy[] memory strategiesToHarvest = new Strategy[](1);
+        strategiesToHarvest[0] = strategy2;
+
+//        v2.harvest(strategiesToHarvest);
+//        strategy2.__emergencyExit();
+//        strategy2.emergencyWithdrawalToken(pool);
+//        v2.withdraw(v2.balanceOf(address(this)));
+        console.log(ERC20(POOL).balanceOf(address(this)) / 1e18);
+        console.log("Bribe Balanace");
+        console.log(ERC20(VADER).balanceOf(address(b)) / 1e18);
+        console.log("Gauge Balanace");
+        console.log(ERC20(VADER).balanceOf(address(b)) / 1e18);
+        console.log("Treasury Balanace");
+        console.log(ERC20(VADER).balanceOf(address(strategy2.owner()))/1e18);
+    }
+
 }

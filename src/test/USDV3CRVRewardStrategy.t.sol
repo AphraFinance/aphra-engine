@@ -96,7 +96,9 @@ interface ICurve {
 
 interface IRewards2 {
     function notifyRewardAmount(uint amount) external;
+
     function earned(address account) external view returns (uint);
+
     function setRewardsDuration(uint _rewardsDuration) external;
 }
 
@@ -170,27 +172,27 @@ contract USDV3CRVRewardStrategyTest is DSTestPlus {
         assertTrue(false);
     }
 
-     function testIntegration() public {
-         uint256 amt = 1_000_000e18;
-        
+    function testIntegration() public {
+        uint256 amt = 1_000_000e18;
+
         giveTokens(address(this), USDV, amt);
         address REWARDS = address(strategy.REWARDS());
-        
+
         hevm.startPrank(address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9));
-        giveTokens(address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), VADER, amt*2);
+        giveTokens(address(0xFd9aD7F8B72fC133543Cb7cCC2F11C03b81726f9), VADER, amt * 2);
         // ERC20(VADER).approve(REWARDS, type(uint256).max);
-        
-        ERC20(VADER).transfer(REWARDS, amt*2);
+
+        ERC20(VADER).transfer(REWARDS, amt * 2);
         IRewards2(REWARDS).notifyRewardAmount(amt);
         hevm.stopPrank();
 
-        uint256[2] memory liq = [amt,0];
+        uint256[2] memory liq = [amt, 0];
 
         ERC20(USDV).approve(POOL, type(uint256).max);
         uint256 crvAmt = ICurve(POOL).add_liquidity(liq, 0);
-        
+
         ERC20(POOL).approve(address(strategy), type(uint256).max);
-        
+
         strategy.mint(crvAmt);
 
         hevm.warp(1646399561);
@@ -200,14 +202,15 @@ contract USDV3CRVRewardStrategyTest is DSTestPlus {
         hevm.stopPrank();
 
 
-        hevm.warp(1646399561 + 7*24*3600);
+        hevm.warp(1646399561 + 7 * 24 * 3600);
 
         uint256 earned = IRewards2(REWARDS).earned(address(strategy));
 
         console.log(earned);
 
-        strategy.harvestRewards();
+        strategy.hit();
+        strategy.redeemUnderlying(crvAmt);
+        console.log(ERC20(POOL).balanceOf(address(this)));
 
-
-     }
+    }
 }

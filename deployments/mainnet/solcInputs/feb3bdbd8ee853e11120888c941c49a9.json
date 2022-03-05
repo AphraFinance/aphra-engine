@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "srcBuild/modules/VaultGaugeDoorman.sol": {
+      "content": "pragma solidity ^0.8.11;\n\ninterface IVF {\n    function deployVault(address) external returns(address);\n}\ninterface IVIM {\n    function initializeVault(address) external;\n}\ninterface IVoter {\n    function whitelistAsAuth(address) external;\n    function createGauge(address) external returns(address);\n}\ncontract VaultGaugeDoorman {\n\n    address immutable self;\n\n    modifier ensureDelegateCall() {\n        require(address(this) != self);\n        _;\n    }\n\n    constructor() {\n        self = address(this);\n    }\n    //must be delegate called\n    function deployAndInitAsAuth(\n        address underlying,\n        address vf,\n        address vim,\n        address voter\n    ) ensureDelegateCall external {\n        address newVault = address(IVF(vf).deployVault(underlying));\n        IVIM(vim).initializeVault(newVault);\n        IVoter(voter).whitelistAsAuth(newVault);\n        IVoter(voter).createGauge(newVault);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

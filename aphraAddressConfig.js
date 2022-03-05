@@ -9,6 +9,7 @@ const ROLES = {
   VOTER: 7,
   VE: 8,
   VE_DIST: 9,
+  STRATEGIST: 99,
 };
 
 module.exports = {

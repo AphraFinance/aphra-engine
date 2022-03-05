@@ -417,6 +417,7 @@ contract Vault is ERC20, Auth {
     /// @param strategies The trusted strategies to harvest.
     /// @dev Will always revert if called outside of an active
     /// harvest window or before the harvest delay has passed.
+
     function harvest(Strategy[] calldata strategies) external requiresAuth {
         // If this is the first harvest after the last window:
         if (block.timestamp >= lastHarvest + harvestDelay) {
